@@ -1,0 +1,29 @@
+\contentsline {section}{\numberline {1}Curriculum Vitae}{3}
+\contentsline {subsection}{\numberline {1.1}Education}{3}
+\contentsline {subsection}{\numberline {1.2}Research experience}{3}
+\contentsline {subsection}{\numberline {1.3}Publications and Papers}{3}
+\contentsline {subsection}{\numberline {1.4}Presentations}{3}
+\contentsline {subsection}{\numberline {1.5}Languages}{4}
+\contentsline {subsection}{\numberline {1.6}Awards and Acknowledgements}{4}
+\contentsline {subsection}{\numberline {1.7}Job experience}{4}
+\contentsline {section}{\numberline {2}Teaching Philosophy}{5}
+\contentsline {section}{\numberline {3}Teaching Experiences}{6}
+\contentsline {section}{\numberline {4}Professional Development}{6}
+\contentsline {section}{\numberline {5}Teaching Evaluations}{7}
+\contentsline {subsection}{\numberline {5.1}compatibility with Code of Teaching Responsibility}{7}
+\contentsline {subsection}{\numberline {5.2}Grade the TA}{7}
+\contentsline {subsection}{\numberline {5.3}What helped you learn?}{8}
+\contentsline {subsection}{\numberline {5.4}What changes would you suggest to improve your learning?}{8}
+\contentsline {subsection}{\numberline {5.5}Other comments}{8}
+\contentsline {section}{\numberline {6}Mentored Teaching Project Proposal}{9}
+\contentsline {subsection}{\numberline {6.1}Course Description}{9}
+\contentsline {subsection}{\numberline {6.2}Problem}{9}
+\contentsline {subsection}{\numberline {6.3}Research Question}{10}
+\contentsline {subsection}{\numberline {6.4}Hypothesis}{10}
+\contentsline {subsection}{\numberline {6.5}Procedure}{10}
+\contentsline {section}{\numberline {7}CCT reflections}{12}
+\contentsline {subsection}{\numberline {7.1}Disciplinary Teaching Strategies}{12}
+\contentsline {subsection}{\numberline {7.2}Creating Effective Learning Environments}{13}
+\contentsline {subsection}{\numberline {7.3}Technology in the Classroom}{14}
+\contentsline {subsection}{\numberline {7.4}Understanding the University Context}{16}
+\contentsline {subsection}{\numberline {7.5}Assessment of Learning}{18}

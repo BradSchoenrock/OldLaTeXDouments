@@ -1,0 +1,219 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\usepackage[margin=1in]{geometry}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\title{Gravitational Astrophysics homework 6}
+\author{Brad Schoenrock}
+\date{}
+\begin{document}
+\maketitle
+\Large
+
+
+\section{problem 1}
+
+\hspace{0.5cm}Q:Explain how the equivalence principle was used in our derivation of the equation of motion of a particle on 13 March.
+
+A:we used the equivilance principle to boost into an accelerating frame where a paint particle would not accelerate relative to the falling painter.
+
+\section{problem 2}
+Eotvos tested the equivalance principal on Lake Balaton in Hungary.
+
+\textbf{part a)}
+
+Q: Would his method for testing the equivalence principle work at the north pole? 
+
+A: no, this experiment would not work at the north pole because there is no preferential direction for the rod to swing (no centripital acceleration at the north pole.)
+
+\textbf{part b)}
+
+Q: Would it work on the equator?
+
+A: no, the equator won't work either because the rod would experience no torque as the centripital force on each ball would be colinear with gravity leading to no net torque due to the difference in inertial and gravitational masses.
+
+\section{problem 3}
+
+\hspace{0.5cm}$a_{\alpha}=u^{\beta}\nabla_{\beta}u_{\alpha}=u^{\beta}(\partial_{\beta}u_{\alpha}-\Gamma^{\gamma}_{\beta\alpha}u_{\gamma})$
+\\*
+
+our contravariant and covariant tangent 4-vectors are 
+
+$u^{\beta}=((1-\frac{2M}{r})^{-\frac{1}{2}},0,0,0)$
+
+$u_{\alpha}=(-(1-\frac{2M}{r})^\frac{1}{2},0,0,0)$
+\\*
+
+and so these properties will hold.
+
+$u^{\beta}u_{\beta}=-1$
+
+$u^{\beta}\partial_{\beta}u_{\alpha}=0$
+\\*
+
+$a_{\alpha}=-\Gamma^{\gamma}_{\beta\alpha}u^{\beta}u_{\gamma}=-\Gamma^{t}_{t\alpha}u^{t}u_{t}=\Gamma^{t}_{t\alpha}$
+\\*
+
+the only nonzero part of a is $a_{r}$
+\\*
+
+$a_{r}=\Gamma^{t}_{tr}=\frac{1}{2}g^{t\alpha}(g_{r\alpha,t}+g_{t\alpha,r}-g_{tr,\alpha})$
+\\*
+
+$\frac{1}{2}g^{tt}g_{tt,r}=\frac{1}{2}(1-\frac{2M}{r})^{-1}\partial_{r}(1-\frac{2M}{r})$
+\\*
+
+$\frac{M}{r^2}\frac{1}{1-\frac{2M}{r}}=g_{rr}a^{r}$
+\\*
+
+$a^{r}=\frac{M}{r^{2}}$
+
+the other components are zero.
+
+\newpage
+\section{problem 4}
+
+Questions from class on 20 March. submitted online.
+\subsection{Lorentz transformation}
+
+\hspace{0.5cm}Q:What transformations do these restrictions forbid?
+
+$\Lambda^{0}_{0}\ge1$
+
+$det\Lambda=1$
+
+A: this transformation doesn't allow weak interactions.
+
+\subsection{Scalars, vectors, and tensors}
+
+\hspace{0.5cm}Q: Is the derivative of a scalar $\frac{\partial \phi}{\partial x^{\mu}}$ a contravariant or covariant vector?
+
+A: $\frac{\partial\phi}{\partial x^{mu}}$ transforms as a covariant 4-vector. 
+\\*
+
+Q: What is the reason for there existing a frame in which the metric tensor is $\eta_{\alpha\beta}$? the position vector is $\xi^{\alpha}$.
+
+A: you can transform to a gravity-less frame because of the equivalence principal.
+\\*
+
+Q: Reason the following works?
+
+$g^{`}_{\mu\nu}=\eta_{\alpha\beta}\frac{\partial \xi^{\sigma}}{\partial x^{`\mu}}\frac{\partial \xi^{\beta}}{\partial x^{`\nu}}$
+
+$g^{`}_{\mu\nu}=\eta_{\alpha\beta}\frac{\partial \xi^{\alpha}}{\partial x^{\sigma}}\frac{\partial x^{\sigma}}{\partial x^{`\mu}}\frac{\partial \xi^{\beta}}{\partial x^{\rho}}\frac{\partial x^{\rho}}{\partial x^{`\nu}}$
+
+A: chain rule.
+\\*
+
+Q: Reason the following works?
+
+$g^{`}_{\mu\nu}=\eta_{\alpha\beta}\frac{\partial \xi^{\alpha}}{\partial x^{\sigma}}\frac{\partial x^{\sigma}}{\partial x^{`\mu}}\frac{\partial \xi^{\beta}}{\partial x^{\rho}}\frac{\partial x^{\rho}}{\partial x^{`\nu}}$
+
+$g^{`}_{\mu\nu}=g_{\sigma\rho}\frac{\partial x^{\sigma}}{\partial x^{`\mu}}\frac{\partial x^{\rho}}{\partial x^{`\nu}}$
+
+A: grouping and substituting.
+\\*
+
+Q: is $g_{\mu\nu}$ a covariant, contravariant, or mixed tensor?
+
+A: covariant.
+\\*
+
+\subsection{Tensor algebra}
+
+\hspace{0.5cm}Q: How do you prove that if a and b are scalars and $A^{\mu\nu} and B^{\mu\nu}$ are tensors, then $aA^{\mu\nu}+bB^{\mu\nu}$ is a tensor.
+
+A: see how it behaves under transformations. 
+
+\subsection{Mathematicians lingo}
+
+\hspace{0.5cm}Q: translate the following. "a dual vector is a linear function of vectors to real numbers"
+
+A: a covariant vector is an object that maps a contravariant vector to a scalar through the operation of contraction of their indies. 
+\\*
+
+Q: if you want to make $A^{\mu}$ bigger what do you do to the arrows? if $B_{\mu}$ is bigger what do you do with the sheets of paper?
+
+A: to make $A^{\mu}$ bigger make the arrow longer. to make $B_{\mu}$ bigger make the sheets of paper closer together.
+
+\subsection{Covariant derivative of a contravariant vector}
+
+\hspace{0.5cm}Q: is $A^{\alpha}_{;\beta}=\nabla_{\beta}A^{\alpha}$ covariant or contravariant in $\beta$?
+
+A: $A^{\alpha}_{;\beta}=\nabla_{\beta}A^{\alpha}$ is covariant in $\beta$ while it is contravariant in $\alpha$
+\\*
+
+Q: Simplicio says "Covariant derivatives are irrelevant i want to know about gravity." in what way is Simplicio wrong?
+
+A: Gravity is the curvature of space-time, and so it is necessary to develop a sort of derivative to test the shape of the universe. when we derived the equations of motion using gravity we found a cristoffel symbol which uses a covariant derivative. so in short, go away simplicio, in the past three months you have been wrong approximately 100\% of the time. 
+
+\newpage
+
+
+\section{Problem 5}
+Questions from class on 22 March. submitted online.
+\subsection{Covariant derivative of a contravariant vector}
+\hspace{0.5cm}Q:Which of these terms describe the diagram? (see class notes for figure.)
+\begin{enumerate}
+\item $A^{r}_{;r}=A^{r}_{,r}$
+\item $A^{r}_{;\theta}=A^{r}_{,\theta}-rA^{\theta}$
+\item $A^{\theta}_{;r}=A^{\theta}_{,r}+\frac{1}{r}A^{\theta}$
+\item $A^{\theta}_{;\theta}=A^{\theta}_{,\theta}+\frac{1}{r}A^{r}$
+\end{enumerate}
+
+A: 2 and 4 are described by the diagram.
+\\*
+
+Q: Simplicio says "Covariant derivates are irrelevant i want to know about gravity." in what way is Simplicio wrong?
+
+A: Gravity is the curvature of space-time, and so it is necessary to develop a sort of derivative to test the shape of the universe. when we derived the equations of motion using gravity we found a cristoffel symbol which uses a covariant derivative. so in short, go away simplicio, in the past three months you have been wrong approximately 100\% of the time. 
+\\*
+
+\subsection{How to measure curvature}
+
+\hspace{0.5cm}Q:Can you measure curvature by looking at a point?
+
+A: no, to measure curvature you need to measure a change between two points in 1-d space, you would need infinitely many to measure the curvature in every direction for 3-d space.
+\\*
+
+Q: Why is $dA_{\gamma PQ}=(\frac{\partial A_{\gamma}}{\partial x^{\alpha}})a^{a}$ not a tensor equation?
+
+A: it does not transform as a tensor, it only has one unsummedover index. you can use a covarient derivative to make it a tensor equation.
+\\*
+
+Q: in MA1(AKA calc 3!?!) I learned that $\frac{\partial^{2}}{\partial x\partial y}=\frac{\partial^{2}}{\partial y\partial x}$. Why doesn't the quantity $[\nabla_{\beta}(\nabla_{\alpha}A_{\gamma})-\nabla_{\alpha}(\nabla_{\beta}A_{\gamma})]=0$?
+
+A: the derivatives in the second quantity have cristoffel symbols and so they don't commute.
+\\*
+
+Q: what does this equation say? 
+
+$dA_{\gamma PQR}-dA_{\gamma PSR}=-A_{\sigma}R^{\sigma}_{\gamma\alpha\beta}a^{\alpha}b^{\beta}$
+
+A:this says that the quantity is path dependent, implying that space is curved not flat.
+\\*
+
+Q:if i swap $\alpha$ and $\beta$ is R the same? $R^{\sigma}_{\gamma\alpha\beta}=R^{\sigma}_{\gamma\beta\alpha}$?What are the last two indices for?
+
+A: ok, so to set the record straight $R^{\sigma}_{\gamma\alpha\beta}= -R^{\sigma}_{\gamma\beta\alpha}$ this means that the Riemann Cristoffel tensor is antisymmetric in the $\alpha and \beta$ indices. the last two indices tell you which path you are taking $(P-Q-R\ or\ P-S-R)$
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

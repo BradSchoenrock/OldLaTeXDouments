@@ -1,0 +1,225 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\usepackage[margin=0.75in]{geometry}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\title{Gravitational Astrophysics homework 7}
+\author{Brad Schoenrock}
+\date{}
+\begin{document}
+\maketitle
+\Large
+
+
+\section{problem 1}
+
+\hspace{0.5cm} The covariant derivative of a contravariant vector is 
+\begin{center}
+$\nabla_{\beta}A^{\alpha}=\frac{\partial A^{\alpha}}{\partial x^{\beta}}+\Gamma^{\alpha}_{\beta\gamma}A^{\gamma}$
+\end{center}
+
+\textbf{part a)} 
+
+Explain in words the meaning of the geodesic equation.
+\begin{center}
+$\nabla_{u}u=0$
+\end{center}
+where u is the 4-velocity. The geodesic equation is also called the equation of motion.
+\\*
+
+Roughly speaking the first term in the equation below comes from the change in the vector field from $x^{\alpha}$ to $x^{\alpha}+\partial x^{\alpha}$, and the second from the change in the basis vectors.
+\begin{center}
+$\nabla_{u}u=u^{\beta}\nabla_{\beta}u^{\alpha}=u^{\beta}\frac{\partial u^{\alpha}}{\partial x^{\beta}}+u^{\beta}\Gamma^{\alpha}_{\beta\gamma}u^{\gamma}=0$
+\end{center}
+
+both terms are basis dependent but the sum is basis independent.
+
+it can also be interpreted as a criterion for a constant vector field. that is to say that a vector that is parallell transported and remains unchanged has the property of satasfying the geodesic equation. 
+\\*
+
+\textbf{part b)} 
+
+Explain briefly Hartle's derivation of the covariant derivative of a covariant vector, equation 20.67.
+
+equation 20.67 is derived by taking two vectors and applying leibniz' rule to obtain the form of how the covariant derivatives operate on rank two tensors and how covariant dervatives act on covariant vectors. this general prescriptoin allows us to derive how a covariant derivative acts on a generic tensor. 
+
+\section{problem 2}
+
+\hspace{0.5cm} In class on 22 March, we derived the Riemann curvature tensor $R^{\sigma}_{\gamma\alpha\beta}$.
+\\*
+
+\textbf{part a)}
+
+outline the idea of the derivation.
+
+we took a vector field $A_{\gamma}$ and moved from one point to another point using two different paths and compared the results in how the vector field changed. this tells us about the curvature of the space traversed.
+\\*
+
+\textbf{part b)}
+
+Show the setps in getting form the two covariant derivatives to the final result.
+\\*
+
+from the definition of the Riemann curvature tensor we have...
+
+\begin{center}
+$A_{\sigma}R^{\sigma}_{\gamma\alpha\beta}=(\nabla_{\beta}\nabla_{\alpha}A_{\gamma}-\nabla_{\alpha}\nabla_{\beta}A_{\gamma})$
+\end{center}
+
+and we will also use the definitions of the covariant derivatives are...
+\begin{center}
+$\nabla_{\alpha}A_{\gamma}=\frac{\partial A_{\gamma}}{\partial x^{\alpha}}-\Gamma^{\sigma}_{\gamma\alpha}A_{\sigma}$
+
+$\nabla_{\beta}T_{\alpha\gamma}=\partial_{\beta}T_{\alpha\gamma}-\Gamma^{\sigma}_{\alpha\beta}T_{\sigma\gamma}-\Gamma^{\sigma}_{\gamma\beta}T_{\alpha\sigma}$
+\end{center}
+picking on one of the terms in the definition of the Riemann curvature tensor and applying the identities above we have...
+\begin{align*}
+\nabla_{\beta}(\nabla_{\alpha}A_{\gamma})&=\partial_{\beta}(\nabla_{\alpha}A_{\gamma})-\Gamma^{\epsilon}_{\alpha\beta}(\nabla_{\epsilon}A_{\gamma})-\Gamma^{\delta}_{\gamma\beta}(\nabla_{\alpha}A_{\delta})\\ &=\partial_{\beta}(\partial _{\alpha} A_{\gamma}-\Gamma^{\sigma}_{\gamma\alpha}A_{\sigma})-\Gamma^{\epsilon}_{\alpha\beta}(\partial_{\epsilon} A_{\gamma}-\Gamma^{\sigma}_{\gamma\epsilon}A_{\sigma})-\Gamma^{\delta}_{\gamma\beta}(\partial_{\alpha} A_{\delta}-\Gamma^{\sigma}_{\alpha\delta}A_{\sigma})\\&=\partial_{\beta}\partial_{\alpha}A_{\gamma}-A_{\sigma}\partial_{\beta}\Gamma^{\sigma}_{\gamma\alpha}-\Gamma^{\sigma}_{\gamma\alpha}\partial_{\beta}A_{\sigma}-\Gamma^{\epsilon}_{\alpha\beta}\partial_{\epsilon}A_{\gamma}+
+\Gamma^{\epsilon}_{\alpha\beta}\Gamma^{\sigma}_{\gamma\epsilon}A_{\sigma}-\Gamma^{\delta}_{\gamma\beta}\partial_{\alpha}A_{\delta}+
+\Gamma^{\delta}_{\gamma\beta}\Gamma^{\sigma}_{\alpha\delta}A_{\sigma}
+\end{align*}
+so taking this term and the term with $\alpha$ and $\beta$ switched and subtracting yields...
+\begin{align*}
+&=\partial_{\beta}\partial_{\alpha}A_{\gamma}-A_{\sigma}\partial_{\beta}\Gamma^{\sigma}_{\gamma\alpha}-\Gamma^{\sigma}_{\gamma\alpha}\partial_{\beta}A_{\sigma}-\Gamma^{\epsilon}_{\alpha\beta}\partial_{\epsilon}A_{\gamma}+
+\Gamma^{\epsilon}_{\alpha\beta}\Gamma^{\sigma}_{\gamma\epsilon}A_{\sigma}-\Gamma^{\delta}_{\gamma\beta}\partial_{\alpha}A_{\delta}+
+\Gamma^{\delta}_{\gamma\beta}\Gamma^{\sigma}_{\alpha\delta}A_{\sigma}\\ & -\partial_{\alpha}\partial_{\beta}A_{\gamma}+A_{\sigma}\partial_{\alpha}\Gamma^{\sigma}_{\gamma\beta}+\Gamma^{\sigma}_{\gamma\beta}\partial_{\alpha}A_{\sigma}+
+\Gamma^{\epsilon}_{\beta\alpha}\partial_{\epsilon}A_{\gamma}-
+\Gamma^{\epsilon}_{\beta\alpha}\Gamma^{\sigma}_{\gamma\epsilon}A_{\sigma}+\Gamma^{\delta}_{\gamma\alpha}\partial_{\beta}A_{\delta}-
+\Gamma^{\delta}_{\gamma\alpha}\Gamma^{\sigma}_{\beta\delta}A_{\sigma}
+\end{align*}
+
+we can see that the first terms in each line after the final equas sign cancel each other, as well as the fourth terms, the fifth terms, and the third term in the first part cancels the sixth term in the second part, and vice versa leaving us with...
+
+$A_{\sigma}R^{\sigma}_{\gamma\alpha\beta}=-A_{\sigma}\partial_{\beta}\Gamma^{\sigma}_{\gamma\alpha}+\Gamma^{\delta}_{\gamma\beta}\Gamma^{\sigma}_{\alpha\delta}A_{\sigma}+A_{\sigma}\partial_{\alpha}
+\Gamma^{\sigma}_{\gamma\beta}-\Gamma^{\delta}_{\gamma\alpha}\Gamma^{\sigma}_{\beta\delta}A_{\sigma}$
+
+canceling the $A_{\sigma}$ in each term yields...
+
+$R^{\sigma}_{\gamma\alpha\beta}=\partial_{\alpha}
+\Gamma^{\sigma}_{\gamma\beta}-\partial_{\beta}\Gamma^{\sigma}_{\gamma\alpha}+\Gamma^{\delta}_{\gamma\beta}\Gamma^{\sigma}_{\alpha\delta}-\Gamma^{\delta}_{\gamma\alpha}\Gamma^{\sigma}_{\beta\delta}$
+
+which is the expression for the Riemann curvature tensor.
+\\*
+
+\textbf{part c)}
+
+The Riemann curvature tensor is a rank 4 tensor, also called a linear function with 3 vector inputs. What is the meaning of $R^{\sigma}_{\gamma\alpha\beta}S_{\sigma}A^{\alpha}B^{\beta}$?
+
+ the $A^{\alpha}$ and $B^{\beta}$ represent the different paths to get between two points and the $S_{\sigma}$ represents the vector field you are moving through. $R^{\sigma}_{\gamma\alpha\beta}S_{\sigma}A^{\alpha}B^{\beta}$ is a covariant vector because there is one unsummedover index, namely ${\gamma}$.
+
+\section{problem 3}
+
+\hspace{0.5cm}**(omited)**In class we found that the Ricci tensor of a homogeneous and isotropic 3-dimensional space is $\tilde{R}_{ij}=-2r^{-2}_{o}\tilde{g}_{ij}$.
+
+\textbf{part a)}
+
+Find the curvature scalar.
+
+\textbf{part b)}
+
+Is $\tilde{R}_{ij}=-2r^{-2}_{o}\tilde{g}_{ij}$ true in 2 dimentions?
+
+\section{problem 4}
+
+\hspace{0.5cm}Questions from class on 27 March. submitted online.
+
+\subsection{Example: Curvature scalar fro surface of a 2-d sphere}
+\hspace{0.5cm}Q: What information is in the curvature scalar?
+
+A: the radius of the sphere and curvature.
+\subsection{Bianchi identity}
+\hspace{0.5cm}Q: the x-y planes have been traversed in the figure. Draw the traversal of the y-z planes. 
+
+A:
+\\*
+\\*
+\\*
+\\*
+\\*
+
+Q: is $\nabla_{x}R^{\sigma}_{\gamma y z}$ the same as $\frac{\partial}{\partial x}R^{\sigma}{\gamma y z}$ ?
+
+A: no, one takes into account the curvature of spacetime. 
+\subsection{Stress-energy tensor without gravity}
+\hspace{0.5cm}Q: let $n^{\alpha}$be a unit vctor. What is $T_{\alpha\beta}u^{\beta}n^{\alpha}$?
+
+A: momentum density in the direction of the unit vector. 
+\\*
+
+Q: What is $T_{xx}$?
+
+A:Pressure. the $T_{ij}$ terms $i\neq j$ are like shear forces. (the force in the x direction on a face which is parallell to the surface of the face.)
+\\*
+
+Q:What is the reason for the factor $(1-v^{2})^{-1/2}$?
+
+A: relativity.
+\\*
+
+Q: There are gas particles moving in the x and y directions. Why don't they transfer momentum across the y-z plane in the y direction?
+
+A: gas in a box exerts it's force perpendicular to the face, meaning that gases in a box exert no shearing forces. 
+\subsection{Stress-energy tensor with gravity}
+\hspace{0.5cm}Q:what is the rule for including gravity? 
+
+A: use covariant derivitave rather than simple partials. 
+\subsection{Conservation of energy and momentum is related to Bianchi's identity}
+\hspace{0.5cm}Q: is energy-momentum conservation is a principle of physics or geometry? is the Bianchi identity is a principle of physics or geometry?
+
+A: energy-momentum conservation is a principle of physics, while the bianchi identity is a principle of geometry.
+\\*
+
+Q: in light of Einstein's equation, what is surprising about the conservation of energy and momentum?
+
+A:Einstein's equation connects geometry and gravity. 
+
+\section{Problem 5}
+
+Questions from class on 29 March. submitted online.
+\subsection{"derivation" of Einstein's field equation}
+\hspace{0.5cm}Q: why does P go to 0 for slow speeds?
+
+A:at slow speeds the particles impacting the walls are imparting no impulse, therefore there is no momentum transfer and correspondingly no pressure.
+\\*
+
+Q: what are the choices for measureing curvature? 
+
+A:Riemann curvature tensor, Ricci tensor, and the curvature scalar.
+\\*
+
+Q:What rank 2 tensor is a measure of curvature?
+
+A:the Ricci tensor is the rank 2 tensor. 
+\subsection{the cosmological constant}
+\hspace{0.5cm}Q: how did Friedman show that the universe is not static?
+
+A: he used his own equation. 
+\subsection{Einstien's toy}
+\hspace{0.5cm}Q:how do you get the ball in the cup?
+
+A:drop the whole apparatus. the tension on the spring will be gone and the spring will pull the ball into the cup. 
+\\*
+
+Q:How is this related to $G_{\mu\nu}=-8\pi GT_{\mu\nu}$?
+
+A:the solution is essentially the equivalience principle.
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

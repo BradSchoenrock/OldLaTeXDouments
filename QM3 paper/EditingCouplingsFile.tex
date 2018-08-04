@@ -1,0 +1,115 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,latexsym,feynmf}
+\newcommand{\tab}{\hspace*{2em}}
+
+\setlength{\parindent}{0.00in}
+
+\author{Andrew Chegwidden\\
+\texttt{chegwid3@msu.edu}
+}
+
+\title{Understanding and Editing the couplings.f File}
+
+\begin{document}
+\unitlength = 1mm
+
+\maketitle
+
+\section{Purpose}
+
+The purpose of this document is to explain what the couplings.f file is, what is inside of it, what its purpose is does, how to utilize it.  This document is meant to serve a supplement the MadGraphUserModel.pdf file which should reside in the same twiki entry.
+
+\section{What it is: Essentially the Lagrangian}
+
+MadGraph does not have a ``one-stop-shop" for altering the Lagrangian in its entire form.  What it does have, however, is a method four adding, removing, or altering the different couplings.  This is how the user can alter the Lagrangian to work with his model.  
+
+\section{Constants}
+
+This section will cover the constants found in lines 103-114.  I will show how it is written in Fortran code and then show it a more familiar form
+
+\subsection{W Mass}
+
+The mass of the W is written as wm = sqrt(zmass**2/Two+sqrt(zmass**4/Four-Pi/Rt*alpha/gfermi*zmass**2)).  At first glance this seems a bit confusing.  Written in a more familiar way
+
+\begin{equation}
+M_W=\sqrt{\frac{M_Z^2}{2}+\sqrt{\frac{M_Z^4}{4}-\frac{\pi\alpha M_Z^2}{\sqrt{2}G_F}}}
+\end{equation}
+
+\subsection{Electric Charge}
+
+MadGraph is different in the way they define electric charge.  What most literature calls ``e" is equivalent to ``-e" in MadGraph's definition.  The couplings.f file defines electric charge through the fine-structure constant
+
+\begin{equation}
+\mathrm{ee2}=\mathrm{alpha}*\mathrm{Fourpi}\rightarrow e^2=4\pi\alpha
+\end{equation}
+
+\subsection{Weak Boson-Fermion Coupling Constant}
+
+The weak boson-fermion couling constant, $g_z$, is written as:
+
+\begin{equation}
+\mathrm{ez}=\mathrm{ee}/\mathrm{sw*cw}\rightarrow g_z=\frac{-e}{\sin\!\left(\theta_w\right)\cos\!\left(\theta_w\right)}
+\end{equation}
+
+\subsection{Vacuum Expectaion Value}
+
+The vacuum expectation value (vev) is used in MadGraph and is defined as 
+
+\begin{equation}
+\mathrm{v=Two*wm*sw/ee}\rightarrow v=\frac{2M_W\sin\!\left(\theta_w\right)}{e}=\frac{1}{\sqrt{\sqrt{2}G_F}}
+\end{equation}
+
+
+\begin{fmffile}{simple_labels}
+\begin{fmfgraph*}(40,25)
+\fmfleft{i1,i2}
+\fmfright{o1,o2}
+
+\fmflabel{$e^-$}{i1}
+\fmflabel{$e^+$}{i2}
+\fmflabel{$e^+,\mu^+$}{o1}
+\fmflabel{$e^-,\mu^-$}{o2}
+\fmflabel{$i\sqrt{\alpha}$}{v1}
+\fmflabel{$i\sqrt{\alpha}$}{v2}
+\fmf{fermion}{i1,v1,i2}
+\fmf{fermion}{o1,v2,o2}
+\fmf{photon,label=$\gamma,,Z^0$}{v1,v2}
+\end{fmfgraph*}
+\end{fmffile}
+
+
+
+
+
+
+\section{The Problem}
+Calculate the total cross section for the process $\mu^- \mu^+ \rightarrow Higgs \rightarrow e^- e^+$.  This process is important for considering the feasibility of Higgs production at a muon collider.
+\newline
+\newline
+\begin{center}
+\begin{fmffile}{one} 				%one.mf will be created for this feynman diagram  
+  \fmfframe(1,7)(1,7){ 				%Sets dimension of Diagram
+   \begin{fmfgraph*}(110,62) 			%Sets size of Diagram
+    \fmfleft{i1,i2}					%Sets there to be 2 sources 
+    \fmfright{o1,o2}  			 	%Sets there to be 2  outputs
+    \fmflabel{$\mu^-,p_1$}{i1}			 	%Labels one of the left sources
+    \fmflabel{$\mu^+,p_2$}{i2}				 %Labels one of the left sources
+    \fmflabel{$e^+,p_{2'}$}{o1} 	%Labels one of the right outputs
+    \fmflabel{$e^-,p_{1'}$}{o2} 	%Labels one of the right outputs
+    \fmf{fermion}{i1,v1,i2} 				%Connects the sources with a vertex.
+    \fmf{fermion}{o1,v2,o2} 			%Connects the outputs with a vertex.
+    \fmf{scalar,label=Higgs k}{v1,v2} 		%Labels the conneting line.
+   \end{fmfgraph*}
+  }
+\end{fmffile}
+\end{center}
+
+
+
+
+
+
+
+\end{document}
+
+

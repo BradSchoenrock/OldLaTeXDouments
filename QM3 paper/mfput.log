@@ -1,0 +1,9 @@
+This is METAFONT, Version 2.718281 (MiKTeX 2.9) (preloaded base=mf 2011.12.6)  6 DEC 2011 17:25
+**'mode=localfont; input one.mf;'
+
+! Emergency stop.
+<*> 'mode=localfont
+                   ; input one.mf;'
+*** (job aborted, file error in nonstop mode)
+
+

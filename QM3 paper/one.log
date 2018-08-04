@@ -1,0 +1,11 @@
+This is METAFONT, Version 2.718281 (MiKTeX 2.9) (preloaded base=mf 2011.12.6)  7 DEC 2011 17:35
+**one.mf
+(C:\Users\Owner\Desktop\TeX_documents\QM3 paper\one.mf
+(C:\Users\Owner\Desktop\TeX_documents\QM3 paper\feynmf.mf)
+feynmf: 1
+:1:\fmfL(54.99986,24.99995,t){$Higgs\ k$}%
+:1:\fmfL(6.09583,-3.45575,rt){$\mu ^-,p_1$}%
+:1:\fmfL(6.09583,65.45575,rb){$\mu ^+,p_2$}%
+:1:\fmfL(103.90417,-3.45575,lt){$e^+,p_{2'}$}%
+:1:\fmfL(103.90417,65.45575,lb){$e^-,p_{1'}$}% [1] )
+Output written on one.2602gf (1 character, 21416 bytes).

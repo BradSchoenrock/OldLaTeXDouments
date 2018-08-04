@@ -1,0 +1,138 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,slashed}
+\title{Determining the Cross Section for $\mu^- \mu^+ \rightarrow Higgs \rightarrow e^- e^+$}
+\author{Andrew Chegwidden \& Brad Sch\"oenrock}
+\date{}
+\begin{document}
+\maketitle
+
+\section{The Problem}
+Calculate the total cross section for the process $\mu^- \mu^+ \rightarrow Higgs \rightarrow e^- e^+$
+
+\section{Assumptions and Conventions}
+Throughout this derivation h and c will both be set to unity.  Will will also use primed variables to denote outgoing particle/antiparticles and unprimed variables to denote incoming particles and antiparticles.  Variables with a subscript 1 will be considered particles while variables with a subscript 2 will be considered antiparticles.  We also write the momentum of the Higgs particle as $k=p_1+p_2=p_{1'}+p_{2'}$
+
+\section{Getting to an Expression for the Cross Section}
+
+We start with an expression for the rate equation:
+\begin{align}
+\frac{dN}{dtd\widetilde{p}_{1'}d\widetilde{p}_{2'}=\frac{m_1m_2}{E_1E_2}\frac{(2\pi)^4\delta^4(p_1+p_2-p_{1^{'}}-p_{2^{'}})}{\Omega}\overline{\left|M\right|^2}
+\end{align}
+We then can relate this eqation to the differential cross section by:
+\begin{align}
+\frac{dN}{dt}=\frac{d\sigma v_{rel,cm}}{\Omega}
+\end{align}
+So that...
+\begin{align}
+\frac{d\sigma}{d\widetilde{p}_1d\widetilde{p}_2}=\frac{m_1m_2}{E_1E_2v_{rel,cm}}(2\pi)^4\delta^4(p_1+p_2-p_{1^{'}}-p_{2^{'}})\overline{\left|M\right|^2}
+\end{align}
+For this problem we work in the center of mass frame and note that $m_1=m_2=m_\mu$.  This leads to 4-vectors:
+\begin{align}
+p_1=\left(E,0,0,p_z\right)
+\end{align}
+\begin{align}
+p_2=\left(E,0,0,-p_z\right)
+\end{align}
+\begin{align}
+p_{2^{'}}=\left(E,E\vec{r}'\right)
+\end{align}
+\begin{align}
+p_{1^{'}}=\left(E,-E\vec{r}'\right)
+\end{align}
+We aslo know that:
+\begin{align}
+d\widetilde{p}_i=\frac{d^3p_i}{2E\left(2\pi\right)^3}
+\end{align}
+We also use the relation that because both the incoming masses are the same and have equal and opposite momentum (in the center of mass frame) the denominator in (3) becomes:
+\begin{align}\
+E_1E_2v_{rel,cm}=\sqrt{(p_1\cdot p_2)^2-{m_\mu}^2}=2p_zE
+\end{align}
+Using equations (4) through (9) and substituting into eq (3) yields the integral for of the total cross section to be 
+\begin{align}
+\sigma=\frac{{m_\mu}^2}{32\pi^2}\int d^3p_{1^{'}}d^3p_{2^{'}}\frac{\delta^4\left(p_1+p_2-p_{1^{'}}-p_{2^{'}}\right)}{p_zE^3}\overline{\left|M\right|^2}
+\end{align}
+\section{Determining the Transfer Matrix Element $\overline{\left|M\right|^2}$}
+The average of the square of the transfer matrix can be written as:
+\begin{align}
+\overline{\left|M\right|^2}=\frac{1}{2s_{{\mu}^{-}}-1}\frac{1}{2s_{{\mu}^{+}}+1}\sum_{spins} \left|M\right|^2
+\end{align}
+Because both incoming particles are fermions the prefactor before the sum is equal to $\frac{1}{4}$.  The expression for the matrix element can be read off from the Feynman diagram to be
+\begin{align}
+\overline{\left|M\right|^2}=\frac{1}{4}\sum_{spins} \left|\left(\frac{-\imath gm_\mu}{2m_w}\right)\left(\overline{v}_2u_1\right)\left(\frac{1}{k^2-{m_H}^2+\imath\epsilon}\right)\left(\frac{-\imath gm_e}{2m_w}\right)\left(\overline{u}_{1^{'}}v_{2^{'}}\right)\right|^2
+\end{align}
+After algrebaric simplification:
+\begin{align}
+\overline{\left|M\right|^2}=\alpha\sum_{spins}\left(\overline{v}_2u_1\right)^*\left(\overline{u}_{1^{'}}v_{2^{'}}\right)^*\left(\overline{v}_2u_1\right)\left(\overline{u}_{1^{'}}v_{2^{'}}\right)
+\end{align}
+where
+\begin{align}
+\alpha=\frac{g^4{m_\mu}^2{m_e}^2}{64{m_w}^4}\left|\frac{1}{k^2-{m_H}^2+\imath\epsilon}\right|^2
+\end{align}
+After performing the complex conjugate operations in eqation (13) we obtain
+\begin{align}
+\overline{\left|M\right|^2}=\alpha\sum_{spins} \left(\overline{u}_1v_2\right)\left(\overline{v}_{2^{'}}u_{1^{'}}\right)\left(\overline{v}_2u_1\right)\left(\overline{u}_{1^{'}}v_{2^{'}}\right)
+\end{align}
+We now move the terms in parentheses around in (15) (they are just numbers) to obtain:
+\begin{align}
+\overline{\left|M\right|^2}=\alpha Tr\left[\left(\sum_{s_1}u_1\overline{u}_1\right)\left(\sum_{s_2}v_2\overline{v}_2\right)\right]Tr\left[\left(\sum_{s_{1^{'}}}u_{1^{'}}\overline{u}_{1^{'}}\right)\left(\sum_{s_{2^{'}}}v_{2^{'}}\overline{v}_{2^{'}}\right)\right]
+\end{align}
+We next use the completeness relation which says that:
+\begin{align}
+\sum_{spins} u_i\overline{u}_i=\frac{\slashed{p}_i+m}{2m_i} \text{  and  } \sum_{spins} v_i\overline{v}_i=\frac{\slashed{p}_i-m}{2m_i}
+\end{align}
+so that we now have:
+\begin{align}
+\overline{\left|M\right|^2}=\alpha\text{ } Tr\left[\frac{\left(\slashed{p}_\mu+m_\mu\right)}{2m_\mu}\frac{\left(\slashed{p}_\mu-m_\mu\right)}{2m_\mu}\right]Tr\left[\frac{\left(\slashed{p}_e+m_e\right)}{2m_e}\frac{\left(\slashed{p}_e-m_e\right)}{2m_e}\right]
+\end{align}
+Algebraic simplification yields:
+\begin{align}
+\overline{\left|M\right|^2}=\beta\text{ } Tr\left[\left(\gamma^\mu p_{\mu 1}+m_\mu\right)\left(\gamma^\nu p_{\nu 2}-m_\mu\right)\right]Tr\left[\left(\gamma^\alpha p_{\alpha 2'}+m_e\right)\left(\gamma^\beta p_{\beta 1'}-m_e\right)\right]
+\end{align}
+where
+\begin{align}
+\beta=\frac{\alpha}{16{m_\mu}^2{m_e}^2}=\frac{g^4}{2^{10}{m_w}^4}\left|\frac{1}{k^2-{m_H}^2+\imath\epsilon}\right|^2
+\end{align}
+We next use the following properties of the trace of the gamma matricies
+\begin{align}
+Tr\left[\gamma^\alpha\gamma^\beta\right]=4g^{\alpha\beta}\text{  and  }Tr\left[\gamma^\alpha\gamma^\beta\gamma^\nu\right]
+\end{align}
+These properties allow us to drop terms with odd powers of gamma matricies.  This yields
+\begin{align}
+\overline{\left|M\right|^2}=\beta\text{ } \left(p_1p_2-{m_\mu}^2\right)\left(p_{1'}p_{2'}-{m_e}^2\right)
+\end{align}
+Keeping only leading order terms in ${m_e}^2$ and carrying out the dot products yields
+\begin{align}
+\overline{\left|M\right|^2}=\beta\text{ } 4{p_z}^2E^2
+\end{align}
+So the expression for the total cross section becomes
+\begin{align}
+\sigma=\frac{g^4{m_\mu}^2{m_e}^2}{2^{13}\pi^2{m_w}^4}\int d^3p_{1^{'}}d^3p_{2^{'}}\frac{\delta^4\left(p_1+p_2-p_{1^{'}}-p_{2^{'}}\right)p_z}{E}\left|\frac{1}{k^2-{m_H}^2+\imath\epsilon}\right|^2
+\end{align}
+\begin{align}
+\sigma=\frac{g^4{m_\mu}^2{m_e}^2}{2^{13}\pi^2{m_w}^4}\int d^3p_{1^{'}}d^3p_{2^{'}}\frac{\delta^4\left(p_1+p_2-p_{1^{'}}-p_{2^{'}}\right)p_z}{E\left(\left(p_{1'}+p_{2'}\right)^2-{m_H}^2+\imath\epsilon\right)\left(\left(p_{1'}+p_{2'}\right)^2-{m_H}^2-\imath\epsilon\right)}
+\end{align}
+\begin{align}
+\sigma=\frac{g^4{m_\mu}^2{m_e}^2}{2^{13}\pi^2{m_w}^4}\int d^3p_{1^{'}}d^3p_{2^{'}}\frac{\delta^4\left(p_1+p_2-p_{1^{'}}-p_{2^{'}}\right)p_z}{E\left(4E^2-{m_H}^2\right)^2}
+\end{align}
+Carring out the integral over the spatial portion of the delta function picks out one of the $d^3p$ integration elements and lives the integral with a delta function in the zeoth component (i.e. the energy).
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

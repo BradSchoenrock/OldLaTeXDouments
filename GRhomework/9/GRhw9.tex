@@ -1,0 +1,243 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\usepackage[margin=0.75in]{geometry}
+\setlength{\headheight}{1cm}
+\setlength{\headsep}{0in}
+\title{Gravitational Astrophysics homework 9}
+\author{Brad Schoenrock}
+\date{}
+\begin{document}
+\maketitle
+\Large
+\section{problem 1}
+A sinusoidal gravity wave travels in the +z direction. the frequencty is 1 kHz and the distance change is $10^{-12}$.
+
+\subsection{part a}
+write metrics for the two independent linearly polarized gravity waves.
+
+\[ g_{\mu\nu} = \left( \begin{array}{cccc}
+-1 & 0 & 0 & 0 \\
+0 & (1+f(t-z)) & 0 & 0 \\
+0 & 0 & (1-f(t-z)) & 0 \\
+0 & 0 & 0 & 1 \end{array} \right)\] 
+
+\[ g_{\mu\nu} = \left( \begin{array}{cccc}
+-1 & 0 & 0 & 0 \\
+0 & 1 & \frac{1}{2}f(t-z) & 0 \\
+0 & \frac{1}{2}f(t-z) & 1 & 0 \\
+0 & 0 & 0 & 1 \end{array} \right)\] 
+
+\subsection{part b}
+change one of the metrics so that it represents the same gravity wave but is algeraically different.
+
+\[ g_{\mu\nu} = \left( \begin{array}{cccc}
+-1 & 0 & 0 & -1/2\epsilon (t-z) \\
+0 & 1 & \frac{1}{2}f(t-z) & 0 \\
+0 & \frac{1}{2}f(t-z) & 1 & 0 \\
+-1/2\epsilon (t-z) & 0 & 0 & 1+\epsilon (t-z) \end{array} \right)\] 
+
+\subsection{part c}
+there are 16 possible terms in the metric for a gravity wave. why are there only two independent polarizations?
+
+not all the terms in the metric are physical.
+
+\newpage
+
+\section{problem 2}
+let the metric for a gravitational wave be $ds^{2}=-dt^{2}+dx^{2}+dy^{2}+[1+f(t-z)]dz^{2}-f(t-z)dtdz$ where $f(t-z)$ is an arbitrary function of (t-z). at a given time $t_{0}, f(t-z)$ is nearly constant over the size of your gravity detector. Hint this metric is not the same as the metric that we introduced in class on 5 April, and the property that the coordinates of a mass are unchanged is untrue here. 
+
+\subsection{part a}
+in which direction is the wave moving?
+\\*
+
+the wave is moving in the $\hat{z}$ direction. 
+
+\subsection{part b}
+compute the distance between two parts of you graity wave detector at $(0,0,0,0) and (0,0,0,1)$ with and without the wave
+
+use the metric 
+
+$ds^{2}=-dt^{2}+dx^{2}+dy^{2}+[1+f(t-z)]dz^{2}-f(t-z)dtdz$
+
+in our case $dt=dx=dy=0$ and so we can reduce the metric to just s and z so it reads, 
+
+$ds=[1+f(t-z)]^{1/2}dz$
+
+we can integrate but we need the limits for the z integral. 
+
+$\int ds=\int [1+f(t-z)]^{1/2}dz$
+
+to find the z limits we use the equation of motion which is 
+
+$\frac{\partial u^{\alpha}}{\partial t}+\Gamma^{\alpha}_{\beta\gamma}u^{\beta}u^{\gamma}=0$
+
+but the $u^{t}$ is 1 so it's derivative is zero. we are more interested in the $u^{z}$ anyway. looking at the ith term. 
+
+$\frac{\partial u^{i}}{\partial t}+\Gamma^{i}_{\beta\gamma}u^{\beta}u^{\gamma}=0$
+
+
+so we will need the cristofyl symbol. 
+
+$\Gamma^{i}_{\lambda\mu}=\frac{1}{2}g^{\nu i}(g_{\mu\nu,\lambda}+g_{\lambda\nu,\mu}-g_{\mu\lambda,\nu})$
+
+so we will need the metric. 
+
+\[ g_{\mu\nu} = \left( \begin{array}{cccc}
+-1 & 0 & 0 & -\frac{1}{2}f(t-z) \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+-\frac{1}{2}f(t-z) & 0 & 0 & 1+f(t-z) \end{array} \right)\] 
+
+from this we can see that any cristofyl symbol where $i=x$ or $i=y$ will be zero, and so $i=z$
+
+$\Gamma^{z}_{\lambda\mu}=\frac{1}{2}g^{\nu z}(g_{\mu\nu,\lambda}+g_{\lambda\nu,\mu}-g_{\mu\lambda,\nu})$
+
+this has two sets on non-zero terms, one where $\nu=t$ and one where $\nu=z$ we will look at the cristofyl symbol where $\lambda$ and $\mu$ are both t. this leaves us with, 
+
+$\Gamma^{z}_{tt}=\frac{1}{2}g^{tz}(g_{zt,z}+g_{zt,z}-g_{zz,t})+\frac{1}{2}g^{zz}(g_{zz,z}+g_{zz,z}-g_{zz,z})$
+
+$\Gamma^{z}_{tt}=-\frac{1}{2}\frac{1}{1+f}\frac{\partial f}{\partial t}$
+
+$\frac{\partial u^{z}}{\partial t}=\Gamma^{z}_{tt}=-\frac{1}{2}\frac{1}{1+f}\frac{\partial f}{\partial t}$
+
+we can take $\frac{1}{1+f}$ to be one because f is small. 
+
+$\frac{\partial u^{z}}{\partial t}=-\frac{1}{2}\frac{\partial f}{\partial t}$
+
+and so 
+
+$u^{z}=\frac{\partial z}{\partial t}=-\frac{1}{2} f$
+
+$\delta z=-\frac{1}{2}f(t-z)\partial t$
+
+so the distance is 
+\\*
+
+$S=\int_{0+\int \frac{1}{2}f(t)\partial t}^{1+\int \frac{1}{2}f(t-1)\partial t}[1+f(t-z)]^{\frac{1}{2}}\partial z$
+\\*
+
+an expansion of the square root yeilds 
+
+$S=\int_{0+\int \frac{1}{2}f(t)\partial t}^{1+\int \frac{1}{2}f(t-1)\partial t}[1+\frac{1}{2}f(t-z)]\partial z$
+\\*
+
+we split that up into two intergrals and on the first we maintain the change in the limits because 1 is large when compared to f, but on the second we don't want to change a small thing by a correction that is on the order of that small thing. this leaves us with 
+\\*
+
+$S=\int_{0+\int \frac{1}{2}f(t)\partial t}^{1+\int \frac{1}{2}f(t-1)\partial t}\partial z+\int_{0}^{1}\frac{1}{2}f(t-z)\partial z$
+\\*
+
+$f(t-z)$ is sinusoidal and so $\int f dz=-\int f dt$ leaving us with the following...
+
+$S=1+\int \frac{1}{2}f(t-1)\partial t - \int \frac{1}{2}f(t)\partial t-\int \frac{1}{2}f(t-1)\partial t+\int \frac{1}{2}f(t)\partial t$
+
+$S=1$
+
+just as if there were no wave.
+
+\subsection{part c}
+explain why this wave is unphysical
+
+it doesn't satisfy the guage condition.
+
+\newpage
+
+\section{problem 3}
+consider the R\"{o}mer, Einstein, and Shapiro time delays, equaions 8-10 in Taylor, J, and Weisberg, J, 1989, ApJ, 345, 434. (there is a link on the sylabus.)
+
+\subsection{part a}
+Explain each time delay at a level appropriate for your little sister, who is enrolled in PHY 183.
+\\*
+
+the R\"{o}mer time delay is how long it takes the pulse to get across the system, the Einstein delay acounts for the time dialation due to the moving pulsar (or observatory) as well as the gravitational redshift caused by all the matter in the way, and the Shapiro time delay is the time required by the pulses to travel through curved space time. 
+
+\subsection{part b}
+For the binary pulsar 1913+16, estimate (to within an order of 10) the magnitude of each time delay for the radio waves passing in the pulsar system and in the solar system. 
+
+$\Delta_R=x\ sin(\omega)[cos(u)-e(1+\delta_r)]+x[1-e^2(1+\delta_\theta )^2]^{\frac{1}{2}}cos(\omega)sin(u)$
+
+$\Delta_E=\gamma \  sin(u)$
+
+$\Delta_S=-2r log[1-e\ cos(u)-s[sin(\omega)(cos(u)-e)+(1-e^2)^{\frac{1}{2}}cos(\omega)sin(u)]]$
+
+we take all trig functions and set them to unity, we can call $\delta_\theta$ and $\delta_r$ small and neglect them. we then use the following values for the paramaters around the binary system...
+\\*
+
+$x=2.34176 sec$
+
+$e=0.61713$
+
+$\gamma=4.28 ms$
+
+$r=6.83 \mu s$
+
+$s=0.73$
+\\*
+
+pluging these in yields
+
+$\Delta_R=2.739 sec$
+
+$\Delta_E=4.28 ms$
+
+$\Delta_S=1.58 \mu s$
+
+for our solar system we can use the meaning of each delay to get a good guess of it's value. the R\"{o}mer time delay works like the distance which for the earth sun system is about 8 light minutes, so the delay is 
+
+$\Delta_R=8 min$
+\\*
+
+an estimate for the einstein delay is 
+
+$\Delta_E=\gamma=\frac{eP_bGm_2(m_1+2m_2)}{2\pi c^2a_RM}$
+
+where we use the following values
+
+$e=0.0167$
+
+$P_b=365 days$
+
+$m_1=$small compared to mass of sun
+
+$m_2=M=1.988*10^{30} kg$
+
+note that $GM/c^3=4.92 \mu s$
+
+$a_R=1.5*10^{11} m$
+
+this yields 
+
+$\Delta_E=16 ms$
+\\*
+
+an estimate for the Shapiro delay can be made from the following equation (number 3 in the paper)
+
+$\Delta_S=-2GM/c^3 Log(1+cos(\theta))$
+
+where $GM/c^3=4.925 \mu s$
+
+$\Delta_S=3.5 \mu s$
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

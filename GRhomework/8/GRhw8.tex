@@ -1,0 +1,351 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\usepackage[margin=0.75in]{geometry}
+\setlength{\headheight}{1cm}
+\setlength{\headsep}{0in}
+\title{Gravitational Astrophysics homework 8}
+\author{Brad Schoenrock}
+\date{}
+\begin{document}
+\maketitle
+\Large
+\section{problem 1}
+Bianchi identity
+\subsection{part a}
+Explain how carrying a vector $A_{\mu}$ around the faces of a cube can give us a differential relationship for the Riemann Curvature Tensor.
+
+It’s how we measure the change in vectors as we move around. This change is how we introduced the differential part. 
+
+\subsection{part b}
+Explain why the equation $R^{\mu\nu}=-8\pi GT^{\mu\nu}$ which was Einstein's first attempt for his field equation, is incorrect. $R^{\mu\nu}$ is the Ricci tensor and $T^{\mu\nu}$ is the stress-energy tensor.
+
+Einstein thought that the earth was unchanging and that it would last forever (ie flat), but Friedman came along and told us that isn't true. The extra curvature scalar term in Einstein’s field equation reflects this. Mathematically speaking if we take the covariant derivative of the stress energy tensor we get 0 where for curved space the covariant derivative of the Ricci tensor is not zero. 
+
+\section{problem 2}
+
+The stress-energy tensor for a perfect gas in flat space at rest is 
+
+\[ T^{\mu\nu} = \left( \begin{array}{cccc}
+\rho & 0 & 0 & 0 \\
+0 & P & 0 & 0 \\
+0 & 0 & P & 0 \\
+0 & 0 & 0 & P \end{array} \right).\] 
+
+Where$\rho$ is the mass-energy density and P is the pressure. (Recall the speed of light is 1)
+
+\subsection{part a}
+Compute the numerical values of the stress-energy tensor of a perfect gas of galaxies for which the mass density is 1 hydrogen atom per cubic meter and the velocity is 200 km/sec. assume the Minkowski metric.
+the density $\rho=\frac{(1 H atom)}{(m^{3})}=1.66*10^{-27} \frac{kg}{m^{3}}$ 
+to find P we start with the equipartition theorem
+
+$\frac{1}{2}mv^{2}=\frac{1}{2}kT$ 
+
+or 
+
+$T=\frac{mv^{2}}{k}$
+
+and from the ideal gas law
+
+$PV=NkT$
+
+$T=\frac{PV}{Nk}$
+
+and so 
+
+$P=\rho Nv^{2}$
+
+$P=6.64*10^{-17} \frac{kg}{ms^{2}}$
+
+now that we have P and $\rho$ we can get about calculating the stress energy tensor. 
+
+$T_{\mu\nu}=(\rho+P)u_{\mu}u^{\nu}+g_{\mu\nu}P$
+
+for the Minkowski metric in Cartesian coordinates is...
+
+\[ g_{\mu\nu} = \left( \begin{array}{cccc}
+-1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1 \end{array} \right)\] 
+
+so 
+
+\[ T_{\mu\nu} = \left( \begin{array}{cccc}
+\rho & 0 & 0 & 0 \\
+0 & P & 0 & 0 \\
+0 & 0 & P & 0 \\
+0 & 0 & 0 & P \end{array} \right)\] 
+
+substituting numbers
+
+\[ T_{\mu\nu} = \left( \begin{array}{cccc}
+1.66*10^{-27}\frac{kg}{m^{3}} & 0 & 0 & 0 \\
+0 & 6.64*10^{-17}\frac{kg}{ms^{2}} & 0 & 0 \\
+0 & 0 & 6.64*10^{-17}\frac{kg}{ms^{2}} & 0 \\
+0 & 0 & 0 & 6.64*10^{-17}\frac{kg}{ms^{2}} \end{array} \right)\] 
+
+\subsection{part b}
+Redo part a) with the Robertson Walker metric. Assume $\Omega=0$ and $H_{0}^{-1}=4000$ Mpc. Explain why the stress energy tensor is not changed substantially. 
+for the Robertson-Walker metric in spherical coordinates is...
+
+\[ g_{\mu\nu} = \left( \begin{array}{cccc}
+-1 & 0 & 0 & 0 \\
+0 & \frac{a^{2}}{1-(\frac{r}{r_{0}})^{2}} & 0 & 0 \\
+0 & 0 & a^{2}r^{2} & 0 \\
+0 & 0 & 0 & a^{2}r^{2}sin^{2}(\theta) \end{array} \right)\] 
+
+so 
+
+\[ T_{\mu\nu} = \left( \begin{array}{cccc}
+\rho & 0 & 0 & 0 \\
+0 & P\frac{a^{2}}{1-(\frac{r}{r_{0}})^{2}} & 0 & 0 \\
+0 & 0 & Pa^{2}r^{2} & 0 \\
+0 & 0 & 0 & Pa^{2}r^{2}sin^{2}(\theta) \end{array} \right)\] 
+
+we also know for this metric that if $\Omega=0, r_{0}=iH_{0}^{-1}$ and so $r_{0}^{2}=-H_{0}^{-2}$
+this leaves a numerical answer of 
+
+\large
+\[ T_{\mu\nu} = \left( \begin{array}{cccc}
+1.66*10^{-27}\frac{kg}{m^{3}} & 0 & 0 & 0 \\
+0 & 6.64*10^{-17}\frac{kg}{ms^{2}}(\frac{a^{2}}{1-\frac{r^{2}}{(4000 Mpc)^{2}}}) & 0 & 0 \\
+0 & 0 & 6.64*10^{-17}\frac{kg}{ms^{2}}a^{2}r^{2} & 0 \\
+0 & 0 & 0 & 6.64*10^{-17}\frac{kg}{ms^{2}}a^{2}r^{2}sin^{2}(\theta) \end{array} \right)\] 
+\Large
+
+but if we are looking locally $(r<<r_{0})$ then we can transform into cartesian coordinates we have 
+\[ T_{\mu\nu} = \left( \begin{array}{cccc}
+1.66*10^{-27}\frac{kg}{m^{3}} & 0 & 0 & 0 \\
+0 & 6.64*10^{-17}\frac{kg}{ms^{2}} & 0 & 0 \\
+0 & 0 & 6.64*10^{-17}\frac{kg}{ms^{2}} & 0 \\
+0 & 0 & 0 & 6.64*10^{-17}\frac{kg}{ms^{2}} \end{array} \right)\] 
+
+which is identical to part a) as long as we are looking locally. 
+
+\newpage 
+
+\section{problem 3}
+The Ricci tensor of a homogeneous and isotropic 3-dimentional space is $\tilde{R}_{ij}=-2r_{0}^{-2}\tilde{g}_{ij}$, where $\tilde{g}_{ij}$ is the 3-dimeniotnal metric and $r_{0}$ is a constant.
+
+\subsection{part a}
+Find the curvature scalar. 
+
+$R_{ij}=\frac{2}{r_{0}^{2}}\tilde{g}_{ij}$
+
+$R=\tilde{g}_{ij}R_{ij}=\frac{2}{r_{0}^{2}}\tilde{g}_{ij}\tilde{g}_{ij}$
+
+the contraction of the $\tilde{g}_{ij}$'s yield the dimensionality of the tensors so we have 
+
+$R=\frac{2}{r_{0}^{2}}*3=\frac{6}{r_{0}^{2}}$
+
+\subsection{part b}
+Is $\tilde{R}_{ij}=2r_{0}^{-2}\tilde{g}_{ij}$ true in 2-dimentions?
+
+we will look at $\tilde{R}_{rr}$ term. in three dimensions we have terms that have derivatives. 
+
+$-\Gamma^{i}_{rr,i}+\Gamma^{i}_{ri,r}=-\Gamma^{r}_{rr,r}+(\Gamma^{r}_{rr,r}+\Gamma^{\theta}_{r\theta ,r}+\Gamma^{\phi}_{r\phi ,r})$
+
+and terms without derivatives look like 
+
+$\Gamma^{i}_{jr}\Gamma^{j}_{ri}-\Gamma^{i}_{ji}\Gamma^{j}_{rr}=\Gamma^{r}_{rr}\Gamma^{r}_{rr}+$
+$\Gamma^{\theta}_{r\theta}\Gamma^{\theta}_{r\theta}+\Gamma^{\phi}_{r\phi}\Gamma^{\phi}_{r\phi}-$
+$\Gamma^{r}_{rr}(\Gamma^{r}_{rr}+\Gamma^{\theta}_{\theta r}+\Gamma^{\phi}_{r\phi})$
+
+now in two dimensions any term with a $\phi$ is nonsensical so we ignore it leaving us with derivative terms that look like, 
+
+$-\Gamma^{i}_{rr,i}+\Gamma^{i}_{ri,r}=-\Gamma^{r}_{rr,r}+(\Gamma^{r}_{rr,r}+\Gamma^{\theta}_{r\theta ,r})$
+
+and the two dimensional terms without derivatives look like 
+
+$\Gamma^{i}_{jr}\Gamma^{j}_{ri}-\Gamma^{i}_{ji}\Gamma^{j}_{rr}=\Gamma^{r}_{rr}\Gamma^{r}_{rr}+$
+$\Gamma^{\theta}_{r\theta}\Gamma^{\theta}_{r\theta}-$
+$\Gamma^{r}_{rr}(\Gamma^{r}_{rr}+\Gamma^{\theta}_{\theta r})$
+
+so the non-zero cristofyl symbols that we need are ...
+
+$\Gamma^{r}_{rr}=\frac{r}{r_{0}^{2}}\frac{1}{1-(\frac{r}{r_{0}})^{2}}$
+$\Gamma^{\theta}_{r\theta}=\Gamma^{\theta}_{\theta r}=1/r$
+
+Putting them into their respective parts and adding yields
+
+$\tilde{R}_{rr}=(\frac{r}{r_{0}^{2}}\frac{1}{1-(\frac{r}{r_{0}})^{2}})^{2}+(\frac{1}{r})^{2}-(\frac{r}{r_{0}^{2}}\frac{1}{1-(\frac{r}{r_{0}})^{2}})^{2}-(\frac{r}{r_{0}^{2}}\frac{1}{1-(\frac{r}{r_{0}})^{2}})(\frac{1}{r})-\frac{1}{r^{2}}$
+
+grouping and canceling yields 
+
+$\tilde{R}_{rr}=\frac{1}{r_{0}^{2}}(\frac{1}{1-(\frac{r}{r_{0}})^{2}})=\frac{1}{r_{0}^{2}}\tilde{g}_{rr}$
+
+it is similarly true for any ij pair and so the form is the same, we just lose the factor of 2 that we had in three dimensions. 
+
+\newpage 
+
+\section{problem 4}
+for a homogeneous and isotropic 3-dimentional space (no time), the Riemann curvature tensor
+
+\begin{center}
+$R_{\lambda\rho\sigma\nu}=\frac{1}{6}R(g_{\nu\rho}g_{\lambda\sigma}-g_{\sigma\rho}g_{\lambda\nu})$
+\end{center}
+
+where g is the metric and R is the curvature scalar. Suppose you carry a vector around a unit square. How much does it change?
+
+We start with an expression derived on 22 March. 
+
+$\partial A_{\gamma PQR}-\partial A_{\gamma PSR}=A_{\sigma}R^{\sigma}_{\gamma\alpha\beta}a^{\alpha}b^{\beta}$
+
+we can adapt this by switching a couple of indices. I will also take the left hand side and call it $\partial A_{\gamma}$
+
+$\partial A_{\gamma}=A^{\sigma}R_{\sigma\gamma\alpha\beta}a^{\alpha}b^{\beta}$
+
+plugging in the expression for the Riemann curvature tensor given in the problem statement we get 
+
+$\partial A_{\gamma}=A^{\sigma}\frac{1}{6}R(g_{\beta\gamma}g_{\sigma\alpha}-g_{\alpha\gamma}g_{\sigma\beta})a^{\alpha}b^{\beta}$
+
+we already calculated R and so putting that in we get
+
+$\partial A_{\gamma}=A^{\sigma}\frac{1}{r_{0}^{2}}(g_{\beta\gamma}g_{\sigma\alpha}-g_{\alpha\gamma}g_{\sigma\beta})a^{\alpha}b^{\beta}$
+
+now we can use the metric tensors to switch the contra variant vectors to the covariant vectors and we get
+
+$\partial A_{\gamma}=A^{\sigma}\frac{1}{r_{0}^{2}}(a_{\sigma}b_{\gamma}-a_{\gamma}b_{\sigma})=(A\cdot a)b_{\gamma}-(A\cdot b)a_{\gamma}=\frac{1}{r_{0}}(a$x$b)$x$A$
+
+\section{Problem 5}
+\hspace{0.5cm}Answer the questions posed in class on 3 April. Submit your answer on angel.
+\\*
+
+Q: Prove $g^{\mu\nu}g_{\mu\nu}=4$. 
+
+A: look at the inertial frame, where the metric tensor is diagonal. then each term on the diagonal of one is the multiplicative inverse of the other, and because it's a 4x4 matrix you add up all the diagonal terms and get 4. 
+\\*
+
+Q: What went into the derivation of the Schwartzschild metric?
+
+A: Einstein’s equation, the general form of the metric, and the Ricci tensor. 
+\\*
+
+Q: If a star has radial pulsations, does a planets orbit change?
+
+A: No, the planet's orbit doesn’t change. 
+\\*
+
+Q: What assumptions have gone into writing a metric of the form 
+$ds^{2}=-dt^{2}+A(t,\vec r)(dr^{2}+r^{2}(d\theta ^{2}+sin^{2}(\theta) d\phi^{2}))$?
+
+A: The assumptions that we made were that there is a time coordinate that is proper time, and that at a given time the space within a small bubble is isotropic.
+\\*
+
+Q: Have I eliminated the possibility of a curved space by grouping the $dr, d\theta,$ and $d\phi$ terms together as $(dr^{2}+r^{2}(d\theta ^{2}+sin^{2}(\theta) d\phi^{2}))$, which is the case for flat spherical coordinates? 
+
+A: no, space can still be curved due to the $B(\vec r)$ multiplier, assuming B isn't 1 in which case space would still be flat. 
+\\*
+
+\section{Problem 6}
+\hspace{0.5cm}Answer the questions posed in class on 5 April. Submit your answer on angel.
+\\*
+
+Q: What Newtonian quantity is in $R_{00}$?
+
+A: Acceleration of the expansion parameter.
+\\*
+
+Q: Interpret the result for the time part of Einstein's field equation applied to the R-W metric. Hint $a=a^{3}a^{-2}$. 
+
+A: It's a F=ma equation with an added pressure term. 
+\\*
+
+Q: Interpret the result $\dot{a}^{2}-\frac{}{}G\rho a^{2}+\frac{1}{r_{o}^{2}}=0$. 
+
+A: its kinetic + potential + a constant dependant on the curvature =0.
+\\*
+
+Q: what's the big surprise?
+
+A: that conservation of energy has a dependence on curvature.
+\\*
+
+Q: In what way is there a wave? 
+
+A: as x increases, y decreases and vice versa. 
+\\*
+
+Q: In which direction is the wave moving?
+
+A: z direction.
+\\*
+
+Q: what if the speed of the wave? 
+
+A: the speed of light.
+\\*
+
+Q: how does the wave affect distances?
+
+A: the coefficient stretches space.
+\\*
+
+Q: Simplicio says, "Since the coordinates of every part of my gravity wave detector does not change, there is no way i can detect gravity waves." is Simplicio correct?
+
+A: no the coordinates don't change, but the distances between the places expand. 
+\\*
+
+Q: Suppose I want to detect kHz gravity waves. How do i support my gravity wave detector? Write requirements for the supports.
+
+A: the detectors must be loosely supported, isolated, and non rigid supports. 
+\\*
+
+Q: Simplicio says, "I want ot use very light mirrors for my Michelson interferometer, because for heavy mirrors, the inertia will lessen the response of the inferometer to gravity waves." Is Simplicio correct? 
+
+A: no because gravitational mass is the same as inertial mass, the mass doesn't even enter into the equation. also it doesn't matter how far the mirrors move through space, it's about the expansion of space between the mirrors. 
+\\*
+
+Q: What is the frequency of gravity waves made by the earth and the sun?
+
+A: naturally it would be 1/year.
+\\*
+
+Q: What kinds of systems produce gravity waves at a detectable frequency? 
+
+A: it would be necessary to have two heavy objects orbiting each other at close distances. two neutron stars or two black holes might do the trick. in any case it would be some sort of exotic system. 
+\\*
+
+Q: referring to the moving diagrams, which diagram is x polarization, and which is is +?
+
+A: the one on the right is the + polarization, while the x is on the left. note that these are simply rotations of each other. 
+\\*
+
+Q: is LIGO able to detect gravity waves regardless of polarization? 
+
+A: no if the wave is propagating along one arm then on the other arm the wave might not oscillate. 
+\\*
+
+Q: is it reasonable to think that gravity waves are unpolarized like light that comes from the stars?
+
+A: no the orbit defines a plane and this gives a preferential direction. 
+\\*
+
+Q: Does the Earth attenuate gravity waves? Are gravity waves weaker if they have to pass through the earth? 
+
+A: no, the only thing that matters is the distance. Having matter in the way will not matter. 
+\\* 
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

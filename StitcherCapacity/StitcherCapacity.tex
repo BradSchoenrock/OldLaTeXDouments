@@ -1,18 +1,18 @@
 \documentclass{article}
 \usepackage{amsmath,amssymb,url}
 \author{Brad Schoenrock\\Video Operations Engineering\\Charter Communications\\Greenwood Village, CO}
-\title{Stitcher Capacity Analysis}
+\title{Stitcher Capacity Analysis: Charter Internal Note}
 \date{}
 \begin{document}
 \maketitle
 
-\section{introduction}
+\section{Introduction}
 
-Stitchers are problems blah blah blah ...
+Common wisdom within charter and Active Video was that stitchers with 96GB of ram had a capacity of 400 concurrent sessions per stitcher. That analysis was flawed. That conclusion was based on average session size, estimated concurrency rates, and the number of users on a market. This model leaves no room for variance, and in the event that a stitcher takes sessions of above average size (which will by definition happen half of the time) then that stitcher will go degraded. If calculations are based on concurrency instead of session size then variance in the concurrency must be taken in order to account for this effect, which originally was not the case. 
 
-Reno upgrades blah blah blah ...
+Simulations of a stitcher in the lab were performed in the past which reinforced a confirmation bias. It is very likely that failed tests were dismissed for seemingly explainable reasons, and once success was obtained further testing was not conducted. In a tightly controled lab environment it is possible to trick oneself into a false sense of security because 1) the size of sessions is more tightly controled in the lab compared to in production, which is evidenced by the fact that the lab had to go out of their way to replicate the issue when prompted, and 2) the degredation of a stitcher is fundamentally a statistical event. With one stitcher in the lab it is possible to get lucky and not go degraded, even at session counts which are beyond estimated thresholds. In production, however, we have approximatly 3350 stitchers which undergo peak prime time load every half hour for 5 hours, so we run that test 33500 times a day. If we actually find ourselves at that 400 session per stitcher that means we get 16750 degraded stitchers per day that have to be recovered. Clearly this is not operationally feasable. The question then becomes what are acceptable rates for stitcher degredation, and how many sessions can a stitcher take at that error rate. 
 
-Error rates blah blah blah ...
+A note on customer impact before we begin discussion of the analysis. Stitcher capacity being limited by memory will go through three phases. At first, markets approach capacity, and the result is that sessions undergo increased latency. As markets cross the capacity threshold and are underprovisioned users experience increased rates of guide unavailable. These effects are already being seen in production. When markets cross a higher threshold and too many stitchers start going degraded all sessions then have to be redireted to other stitchers. When the remaining stitchers take that load they will be more likely go degraded under the increased load then they will go degraded themselves, and a cascading problem occours. This will lead to a near 100\% guide unavailable full market blackout. 
 
 \section{Session Size Data Acquisition}
 
@@ -28,15 +28,13 @@ Session parameters were loaded into python and the pandas utility was used in or
 
 \section{Peak Usage Data Acquisition}
 
-Peak usage was determined through measurement of sessions reported in CSM logs. Each session's start, end, stitcher hit, and service group hit were collected \& aggregated. Features of those log events were extracted and analysis has been performed to measure a multitude of CSM functionality including times of events, service group response times, session exit conditions, and more. Relevant to this analysis was session start times which have the feature for user login times and session lengths based on session start time and session exit time. 
+Peak usage was determined through measurement of sessions reported in CSM logs. Each session's start, end, stitcher hit, and service group hit were collected and aggregated. Features of those log events were extracted and analysis has been performed to measure a multitude of CSM functionality including times of events, service group response times, session exit conditions, and more. Relevant to this analysis was session start times which have the feature for user login times and session lengths based on session start time and session exit time. 
 
 \section{Peak Usage Measurement}
 
 User login times were collected for every CSM independantly, and each CSM represents about one third of the traffic on a market. Binned into 10 min intervals to ensure reasonable statistics and fitted prime time loads peak usage for each CSM was read from these histograms. In a 10 min interval a fraction of sessions are running at any given time, and based on measured session length from measured CSM data a prime time concurrent load can be calculated. 
 
-A distinction should be made between prime time load, and peak prime time load. A fit to the data will return prime time load which was used in this analysis, but every 30 minutes on the half hour a spike in usage occurs. Those spikes (peak prime time load) can be up to 2x the result from the fitted prime time load.
-
- 
+A distinction should be made between prime time load, and peak prime time load. A fit to the data will return prime time load which was used in this analysis, but every 30 minutes on the half hour a spike in usage occurs. Those spikes (peak prime time load) can be up to 2x the result from the fitted prime time load. If peak prime time analysis is preferred double the stitcher need. 
 
 \section{Stitcher Capacity Analysis}
 

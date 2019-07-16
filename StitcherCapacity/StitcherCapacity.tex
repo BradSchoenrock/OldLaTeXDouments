@@ -43,13 +43,13 @@ Session parameters were loaded into python and the pandas utility was used in or
         \center{\includegraphics[width=\textwidth]
         {figures/sizeVsLength.eps}}
         \caption{\label{FIGURE-SizeVsLenth} Scatter plot with session size vs length. Note the fall off of sessions $\>$ 1 day in length due to the cron job script that is partially deployed.}
-      \end{figure}
+\end{figure}
 
 \begin{figure}[!htb]
         \center{\includegraphics[width=\textwidth]
         {figures/sizeVsLengthZoomed.eps}}
         \caption{\label{FIGURE-SizeVsLengthZoomed} Scatter plot with session size vs length. Note the sparsely populated region in session size at approx. 750MB.}
-      \end{figure}
+\end{figure}
 
 
 
@@ -67,13 +67,13 @@ User login times were collected for every CSM independantly, and each CSM repres
         \center{\includegraphics[width=\textwidth]
         {figures/fittedDailyUse.eps}}
         \caption{\label{FIGURE-DailyUse} An aggregated example one day usage from all markets. Ten minute bins. Fitted to smooth function.}
-      \end{figure}
+\end{figure}
 
 \begin{figure}[!htb]
         \center{\includegraphics[width=\textwidth]
         {figures/fittedDailyUseWithSpikes.eps}}
         \caption{\label{FIGURE-DailyUseWithSpikes} An aggregated example one day usage from all markets. Ten minute bins. Fitted with peak usage.}
-      \end{figure}
+\end{figure}
 
 A distinction should be made between prime time load, and peak prime time load. A fit to the data will return prime time load which was used in this analysis as in figure~\ref{FIGURE-DailyUse}, but every 30 minutes on the half hour a spike in usage occurs. Those spikes (peak prime time load), example shown in figure~\ref{FIGURE-DailyUseWithSpikes} can be up to 2x the result from the fitted prime time load. If peak prime time analysis is preferred estimate double the stitcher need. Prime time concourrent sessions can be seen in table~\ref{TABLE-marketConcSessions}.
 

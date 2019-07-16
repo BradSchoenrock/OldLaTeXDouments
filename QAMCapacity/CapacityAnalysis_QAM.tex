@@ -1,0 +1,149 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,url}
+\usepackage{graphicx}
+\usepackage[table,x11names]{xcolor}
+\usepackage{float}
+
+
+
+\author{Brad Schoenrock\\Video Operations Engineering\\Charter Communications\\Greenwood Village, CO}
+\title{Stitcher Capacity Analysis:\\Charter Internal Note.\\Draft Version 0.0.0}
+\date{July. 2019}
+\begin{document}
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\label{SECTION-Introduction}
+
+Spec-Guide QAM bandwidth was initially a conern brought up by ...
+
+QAMs are distributed on a service group(SG) level, with two QAMs per SG.
+
+Each QAM has 38.8MBps of bandwidth, 37.5 is usable for delivery of Spec-Guide sessions. 
+
+QAM bandwidth is managed on the CSM by the QAM Resource Manager (QRM). 
+
+The QRM is configured through configuration files, topology.xml and programs.xml, which defines the total bandwidth output of the QAM, the output frequency of the QAM, and the bandwidth expected for each type of stream (SD vs. HD, etc...) in both steady state operations as well as a maximum bandwidth usage.  
+
+The QRM will not allow sessions to be sent to a QAM once the bandwidth has been entirly allocated. 
+
+Smartmuxing in the QRM allows a few extra sessions to be allocated to the QAM in order to utalize bandwidth when other sessions are not using up their allotted bandwidth. 
+
+If sessions begin to overrun the QAM bandwidth the QRM will send a few frames of lower quality, will drop frames, or as a last resort deny new sessions outright. These behaviours are recorded in CSM logs. 
+
+Stuff and things... 
+
+\section{Technical Debt}
+\label{SECTION-TechDebt}
+
+Stuff and things... 
+
+\section{QAM bandwidth Available}
+\label{SECTION-QAMBandwidthAvailable}
+
+Stuff and things... 
+
+\section{QAM Bandwidth Analysis}
+\label{SECTION-QAMCapacity}
+
+Stuff and things... 
+
+\section{Conclusion}
+\label{SECTION-Conclusion}
+
+Stuff and things... 
+
+
+
+
+\newpage
+
+\appendix
+
+\section{Appendix A\: Example QRM Configuration}
+\label{APPENDIX-QRMConfig}
+
+Stuff and things... 
+\newline
+\newline
+
+$<$resolution height="480"$>$
+
+$<$mpeg2$>$
+
+$<$bitrateProfile name="Default\_SD"$>$1000000$<$/bitrateProfile$>$
+
+$<$bitrateProfile name="Low\_SD"$>$1000000$<$/bitrateProfile$>$
+
+$<$bitrateProfile name="MediumLow\_SD"$>$1200000$<$/bitrateProfile$>$
+
+$<$bitrateProfile name="Medium\_SD"$>$1500000$<$/bitrateProfile$>$
+
+$<$bitrateProfile name="High\_SD"$>$2000000$<$/bitrateProfile$>$
+
+$<$bitrate$>$4000000$<$/bitrate$>$
+
+$<$quant$>$3$<$/quant$>$
+
+$<$aquant$>$4$<$/aquant$>$
+
+$<$txtquant$>$2$<$/txtquant$>$
+
+$<$/mpeg2$>$
+
+$<$h264$>$
+
+$<$bitrate$>$4000000$<$/bitrate$>$
+
+$<$quant$>$14$<$/quant$>$
+
+$<$aquant$>$14$<$/aquant$>$
+
+$<$/h264$>$
+\newline
+\newline
+
+$<$resolution height="720"$>$
+
+$<$mpeg2$>$
+
+$<$bitrateProfile name="Default\_HD"$>$1600000$<$/bitrateProfile$>$
+
+$<$bitrateProfile name="Low\_HD"$>$1600000$<$/bitrateProfile$>$
+
+$<$bitrateProfile name="MediumLow\_HD"$>$1800000$<$/bitrateProfile$>$
+
+$<$bitrateProfile name="Medium\_HD"$>$2000000$<$/bitrateProfile$>$
+
+$<$bitrateProfile name="High\_HD"$>$2500000$<$/bitrateProfile$>$
+
+$<$bitrate$>$6000000$<$/bitrate$>$
+
+$<$quant$>$3$<$/quant$>$
+
+$<$aquant$>$5$<$/aquant$>$
+
+$<$txtquant$>$2$<$/txtquant$>$
+
+$<$/mpeg2$>$
+
+$<$h264$>$
+
+$<$bitrate$>$10000000$<$/bitrate$>$
+
+$<$quant$>$10$<$/quant$>$
+
+$<$aquant$>$14$<$/aquant$>$
+
+$<$/h264$>$
+
+
+
+
+
+
+\end{document}

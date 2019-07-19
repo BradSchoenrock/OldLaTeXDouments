@@ -19,45 +19,60 @@
 \section{Introduction}
 \label{SECTION-Introduction}
 
-Spec-Guide QAM bandwidth was initially a conern brought up by ...
-
-QAMs are distributed on a service group(SG) level, with two QAMs per SG.
-
-Each QAM has 38.8MBps of bandwidth, 37.5 is usable for delivery of Spec-Guide sessions. 
-
-QAM bandwidth is managed on the CSM by the QAM Resource Manager (QRM). 
-
-The QRM is configured through configuration files, topology.xml and programs.xml, which defines the total bandwidth output of the QAM, the output frequency of the QAM, and the bandwidth expected for each type of stream (SD vs. HD, etc...) in both steady state operations as well as a maximum bandwidth usage.  
-
-The QRM will not allow sessions to be sent to a QAM once the bandwidth has been entirly allocated. 
-
-Smartmuxing in the QRM allows a few extra sessions to be allocated to the QAM in order to utalize bandwidth when other sessions are not using up their allotted bandwidth. 
-
-If sessions begin to overrun the QAM bandwidth the QRM will send a few frames of lower quality, will drop frames, or as a last resort deny new sessions outright. These behaviours are recorded in CSM logs. 
-
 Stuff and things... 
 
-\section{Technical Debt}
-\label{SECTION-TechDebt}
+Spec-Guide QAM bandwidth was initially a conern brought up as a possible cause of Guide Unavailable, Failure to Tune messages, and a potentially call volume generating problem. Spec-Guide QAM bandwidth is a limited resource, which scales with the number of customers, so the capacity of the Spec-Guide QAMs were also a concern to be investigated. The architecture of the platform dictates that each service group gets exactly two Spec-Guide QAMs to serve it, with no more or less. This creates a situation where the RF bandwidth of the QAMs dictate the maximum number of customers a service group can support. Since the QAMs themselves can't output more bandwidth (They are fixed devices that don't lend themselves to upgrades) and our architecture dictates that we can't add more than two QAMs per service group, this means that the only lever that is available to resolve such issues is managing the size and number of our service groups. We (ISP) does this routinely with service group splits and merges. When service groups get too large they are split into two different service groups, and when small service groups are near each other they are collapsed into one service group. 
 
-Stuff and things... 
+On a service group by service group level the QAM bandwidth is managed on the CSM by the QAM Resource Manager (QRM). The QRM is set up through configuration files, topology.xml and programs.xml. These config files define the total bandwidth output capability of the QAM for the QRM, the output frequency of the QAM, and the bandwidth expected for each type of stream (SD vs. HD, etc...) in both steady state operations as well as a maximum bandwidth usage. In this way we can monitor estimated QAM usage and ensure there aren't any overruns. As overruns would be approached, the QRM uses smartmuxing in order to serve extra sessions when current sessions are not using up their allotted bandwidth. 
 
-\section{QAM bandwidth Available}
-\label{SECTION-QAMBandwidthAvailable}
 
-Stuff and things... 
 
-\section{QAM Bandwidth Analysis}
+\section{QAM Bandwidth Availability \& Analysis}
 \label{SECTION-QAMCapacity}
 
 Stuff and things... 
+
+Each QAM has 38.8MBps of bandwidth, 37.5MBps is usable for delivery of Spec-Guide sessions. With two QAMs per service group this means each service group has 75MBps of bandwidth for delivery of Spec-Guide sessions. 
+
+The QRM is configured based on actual session usage, a sample configuration can be seen in Appendix~/ref{APPENDIX-QRMConfig}. The highest definition mpeg streams allocate 2.5MBps steady state, and a peak of 6MBps of RF bandwidth. By monitoring the throughput of the APEX by eye in prime time these settings are matching usage. Average session bandwidth is between 2-2.5MBps which is below 2.5 since not every session is HD. 
+
+In order to define a functional capacity we need to ensure enough bandwidth to serve another session. For this reason 6MBps of bandwidth should be reserved on each QAM. The remaining 63MBps of QAM bandwidth on the service group can then serve 26 HD sessions at the configured 2.5MBps each. Maximum concurancy rate of our customer base was measured to be 4\% in stitcher capacity analysis, and while that would fluctuate more on a service group basis, it still serves as a baseline for system usage. This leads to a capacity calculation of: 
+
+$$Capacity=\frac{QAM_{BWTotal}-2*MAX_{BWSess}}{SS_{BW}*Concurancy}$$ 
+
+Where $Capacity$ is the number of customers a service group can handle defined by QAM bandwidth, $QAM_{BWTotal}$ is the total usable QAM bandwidth available on the service group, $MAX_{BWSess}$ is the max bandwidth used for a session (typically during session set up), $SS_{BW}$ is the steady state bandwidth usage, and $Concurancy$ is the concurancy rate of users in the service group. 
+
+This calculation leads to a capacity of approximatly 720 customers per service group. There are several reasons why this is a low estimate. 
+
+\begin{enumerate}
+\item The average usage is lower than an HD stream would dictate. This means more sessions can be allocated to a QAM than if they were all HD streams
+\item The allocation of keeping max bandwidth in reserve per QAM is overkill. Not every session will use the max bandwidth on setup, so it is possible that less can be reserved for new sessions. 
+\item A 4\% concurancy rate is on the high end of measured usages. Fluctuations to that value would be possible, but the majority of cases would be lower, and more users could be supported at lower concurancy rates. 
+\item The QRM uses smartmuxing which ``Recycles'' unused bandwidth in order to serve out more sessions than this analysis would indicate. 
+\end{enumerate}
+
+These factors provide significant leeway in capacity concerns. Operating at 720 customers per service group would be operationally ideal, but these factors would easily allow us to reach 800-1000 customers per service group without concerns to the customer experience. If we were to reach 1200-1500 customers per service group then the customer experience would begin to suffer due to Spec-Guide QAM bandwidth. 
+
+Customers per service group was measured through the CSM logs (but is also tracked in other ways by other groups) in order to determine if any service groups were over the relevant thresholds. Table~\ref{TABLE-HighSGUse} lists service groups to watch. It is noteworthy that the average number of customer per service group is INSERTNUMBERHERE, (which is BLAHBLAHBLAH lower than the first threshold) so overall we have pleanty of QAM bandwidth to go around so long as it is properly allocated. 
+
+
 
 \section{Conclusion}
 \label{SECTION-Conclusion}
 
 Stuff and things... 
 
+If sessions begin to overrun the Spec-Guide QAM bandwidth beyond what smartmuxing could handle, the customer experience would be affected in a few ways. First the QRM will send a few frames of lower quality for sessions in order to limit the bandwidth usage. Next, users would experience pixelation of the guide interface, delayed frames, and/or droped frames in order to maintain the integrety of the Spec-Guide QAM. As a last resort the QRM will deny new sessions outright. The QRM will not allow sessions to be sent to a QAM once the bandwidth has been entirly allocated. All of these behaviours would be recorded in CSM logs. 
 
+
+
+Stuff and things... 
+
+There are no significant Spec-Guide QAM bandwidth related concerns. 
+
+The best way to ensure we are not overrunning our QAM bandwidth is to limit the number of customers per service group, and perform service group collapses and splits as needed. 
+
+Direct measurements of RF bandwidth in an automated fasion would be time consuming, costly, and unnessicary. The number of customers per service group serves the same purpose in this case, and requires no further monitoring. 
 
 
 \newpage
@@ -142,8 +157,374 @@ $<$aquant$>$14$<$/aquant$>$
 $<$/h264$>$
 
 
+\newpage
+
+
+\section{Appendix B\: Customers by SGID}
+\label{APPENDIX-CustBySGID}
+
+
+
+
+\begin{table}
+\begin{tabular}{|l|l|l|} 
+\hline Market & SGID & Customer Count \\
+\hline  &  &  \\  
+\hline  &  &  \\
+\hline  &  &  \\
+\hline  &  &  \\
+\hline  &  &  \\
+\hline  &  &  \\
+\hline  &  &  \\
+\hline  &  &  \\
+\hline  &  &  \\
+\hline  &  &  \\
+\hline  &  &  \\
+\hline  &  &  \\
+\hline 
+\end{tabular}
+\caption{\label{TABLE-HighSGUse} Service groups with customer counts over 720.} 
+\end{table}
+
+
+
+CustPerSG/edprmnResults.txt
+
+    744 40019 
+
+    819 30003 
+
+    850 41010 
+
+   1006 40017 
+
+   1079 30006 
+
+   1083 30001 
+
+
+
+CustPerSG/knwdmiResults.txt
+
+    726 49011 
+
+    736 37025 
+
+    748 21032 
+
+    766 48076 
+
+    799 28022 
+
+    805 13010 
+
+   1222 48075 
+
+
+
+CustPerSG/mddcwiResults.txt
+
+    731 14034 
+
+    740 42028 
+
+    741 24011 
+
+    771 52031 
+
+    786 29002 
+
+    791 36021 
+
+    817 27017 
+
+    833 23004 
+
+    877 42035 
+
+   1014 13029 
+
+   1212 50002 
+
+
+
+CustPerSG/pldcorResults1.txt
+
+    729 40225 
+
+    739 40956 
+
+    755 14022 
+
+    763 40186 
+
+    766 20017 
+
+    779 20019 
+
+    789 40114 
+
+    794 40518 
+
+    802 15001 
+
+    806 27068 
+
+    815 27070 
+
+    828 14018 
+
+    834 27022 
+
+    836 40116 
+
+    842 20012 
+
+    843 20003 
+
+    908 14023 
+
+    991 14026 
+
+    992 40154 
+
+   1048 14030 
+
+   1049 14016 
+
+   1087 14035 
+
+   1413 14020 
+
+   1415 14019 
+
+   1878 14007 
+
+ 
+
+CustPerSG/pldcorResults2.txt
+
+    723 28011 
+
+    727 38023 
+
+    733 25005 
+
+    733 26003 
+
+    737 25002 
+
+    740 38034 
+
+    746 25006 
+
+    747 28009 
+
+    749 28008 
+
+    767 28006 
+
+    768 19002 
+
+    768 43017 
+
+    774 38035 
+
+    782 43016 
+
+    791 43013 
+
+    793 25019 
+
+    798 25020 
+
+    811 34004 
+
+    822 25008 
+
+    827 19004 
+
+    837 43035 
+
+    843 43011 
+
+    849 25011 
+
+    858 25021 
+
+    864 19012 
+
+    880 26002 
+
+    882 25010 
+
+    901 34002 
+
+    902 43012 
+
+    921 25012 
+
+    940 38014 
+
+    959 19008 
+
+   1006 38030 
+
+   1014 25004 
+
+   1073 19007 
+
+   1077 34005 
+
+   1159 28002 
+
+   1200 43015 
+
+   1382 34003 
+
+
+
+CustPerSG/renonvResults.txt
+
+    721 11018 
+
+    728 11101 
+
+    730 12029 
+
+    730 14015 
+
+    741 12005 
+
+    741 12010 
+
+    749 10031 
+
+    749 11150 
+
+    752 17001 
+
+    757 16010 
+
+    760 10005 
+
+    760 11126 
+
+    766 14016 
+
+    769 11134 
+
+    770 16015 
+
+    775 17002 
+
+    782 11142 
+
+    789 11175 
+
+    797 11149 
+
+    797 11156 
+
+    797 12013 
+
+    804 11147 
+
+    804 15011 
+
+    813 11044 
+
+    815 12018 
+
+    817 11141 
+
+    823 11068 
+
+    830 11094 
+
+    832 10050 
+
+    840 11151 
+
+    842 11045 
+
+    848 11165 
+
+    857 15022 
+
+    866 11114 
+
+    869 11174 
+
+    876 11179 
+
+    881 12020 
+
+    897 16001 
+
+    904 11140 
+
+    931 11123 
+
+    952 12024 
+
+    956 11059 
+
+    973 12025 
+
+   1008 17010 
+
+   1013 11144 
+
+   1017 12009 
+
+   1023 16016 
+
+   1038 11028 
+
+   1122 11104 
+
+   1208 12008 
+
+
+
+CustPerSG/sldclaResults.txt
+   - -
+
+
+CustPerSG/sldcmoResults.txt
+
+   3628 24090 
+
+
+
+CustPerSG/spdcscResults.txt
+
+    720 61105 
+
+    734 26077 
+
+    737 22033 
+
+    737 26024 
+
+    752 24061 
+
+    757 26089 
+
+    758 32093 
+
+    782 30015 
+
+    794 22028 
+
+
+
+
+
 
 
 
 
 \end{document}
+

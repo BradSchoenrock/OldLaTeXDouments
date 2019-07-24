@@ -7,7 +7,7 @@
 
 
 \author{Brad Schoenrock\\Video Operations Engineering\\Charter Communications\\Greenwood Village, CO}
-\title{Stitcher Capacity Analysis:\\Charter Internal Note.\\Preliminary Draft Version 1.1.0}
+\title{Spec-Guide QAM Bandwidth Capacity Analysis:\\Charter Internal Note.\\Draft Version 1.2.0}
 \date{July. 2019}
 \begin{document}
 \maketitle
@@ -21,24 +21,24 @@
 
 Spec-Guide QAM bandwidth was initially a concern brought up as a possible cause of Guide Unavailable, Failure to Tune messages, and a potentially call volume generating problem. Spec-Guide QAM bandwidth is a limited resource, which scales with the number of STBs, so the capacity of the Spec-Guide QAMs is another aspect of this concern to be investigated. The architecture of the platform dictates that each service group gets exactly two Spec-Guide QAMs to serve it, with no more or less. This creates a situation where the RF bandwidth of the QAMs dictate the maximum number of STBs a service group can support. Since the QAMs themselves can't output more bandwidth (They are fixed devices that don't lend themselves to upgrades) and our architecture dictates that we can't add more than two QAMs per service group, this means that the only lever that is available to resolve such issues is managing the size and number of our service groups. We (ISP) does this routinely with service group splits and merges. When service groups get too large they are split into two different service groups, and when small service groups are near each other they are collapsed into one service group. 
 
-On a service group by service group level the QAM bandwidth is managed on the CSM by the QAM Resource Manager (QRM). The QRM is set up through configuration files, topology.xml and programs.xml. These config files define the total bandwidth output capability of the QAM for the QRM, the output frequency of the QAM, and the bandwidth expected for each type of stream (SD vs. HD, etc...) in both steady state operations as well as a maximum bandwidth usage. In this way we can monitor estimated QAM usage and ensure there aren't any overruns. As overruns would be approached, the QRM uses smartmuxing in order to serve extra sessions when current sessions are not using up their allotted bandwidth. 
+On a service group by service group level the QAM bandwidth is managed on the CSM by the QAM Resource Manager (QRM). The QRM is set up through configuration files, topology.xml and programs.xml. These config files define the total bandwidth output capability of the QAM for the QRM, the output frequency of the QAM, and the bandwidth expected for each type of stream (SD vs. HD, etc...) in both steady state operations as well as a maximum bandwidth usage. In this way we can monitor QAM usage and ensure there aren't any overruns. As overruns would be approached, the QRM uses smartmuxing in order to serve extra sessions when current sessions are not using up their allotted bandwidth. 
 
 
 
-\section{QAM Bandwidth Availability \& Analysis}
+\section{Spec-Guide QAM Bandwidth Availability \& Analysis}
 \label{SECTION-QAMCapacity}
 
-Each QAM has 38.8MBps of bandwidth, 37.5MBps is usable for delivery of Spec-Guide sessions. With two QAMs per service group this means each service group has 75MBps of bandwidth for delivery of Spec-Guide sessions. 
+Each QAM has 38.8MBps of bandwidth, 37.5MBps is usable for delivery of Spec-Guide sessions which is the physical limitation of the device. With two QAMs per service group as dictated by architectural decisions, this means each service group has 75MBps of bandwidth for delivery of Spec-Guide sessions. 
 
-The QRM is configured based on actual session usage, a sample configuration can be seen in Appendix~\ref{APPENDIX-QRMConfig}. The highest definition mpeg streams allocate 2.5MBps steady state, and a peak of 6MBps of RF bandwidth. By monitoring the throughput of the APEX by eye in prime time these settings are matching usage within an acceptable margin of error. Average session bandwidth is between 2-2.5MBps which is below 2.5 since not every session is HD. 
+The QRM is configured based on actual session usage, a sample configuration can be seen in Appendix~\ref{APPENDIX-QRMConfig}. The QRM allocates 2.5MBps for the highest definition mpeg streams at steady state, and a peak of 6MBps of RF bandwidth. By monitoring the throughput of the APEX by eye in prime time these settings are matching usage within an acceptable margin of error. Average session bandwidth is between 2-2.5MBps which is below 2.5 since not every session is HD. 
 
 In order to define a functional capacity we need to ensure enough bandwidth to serve another session. For this reason 6MBps of bandwidth should be reserved on each QAM. The remaining 63MBps of QAM bandwidth on the service group can then serve 26 HD sessions at the configured 2.5MBps each. Maximum concurrency rate of our customer base was measured to be 5\% in stitcher capacity analysis, and while that would fluctuate more on a service group basis, it still serves as a baseline for system usage. This leads to a capacity calculation of: 
 
 $$Capacity=\frac{QAM_{BWTotal}-2*MAX_{BWSess}}{SS_{BW}*Concurrency}$$ 
 
-Where $Capacity$ is the number of STBs a service group can handle defined by QAM bandwidth, $QAM_{BWTotal}$ is the total usable QAM bandwidth available on the service group, $MAX_{BWSess}$ is the max bandwidth used for a session (typically during session set up), $SS_{BW}$ is the steady state bandwidth usage for a session, and $Concurrency$ is the concurrency rate of users in the service group. 
+Where $Capacity$ is the number of STBs a service group can handle defined by bandwidth of the QAM, $QAM_{BWTotal}$ is the total usable QAM bandwidth available on the service group, $MAX_{BWSess}$ is the max bandwidth used for a session (typically during session set up), $SS_{BW}$ is the steady state bandwidth usage for a session, and $Concurrency$ is the concurrency rate of users in the service group. 
 
-This calculation leads to a capacity of ~500 STB per service group. There are several reasons why this is a low estimate. 
+This calculation leads to a capacity of ~500 STB per service group. There are several reasons why this is a low indication of capacity. 
 
 \begin{enumerate}
 \item The average usage is lower than an HD stream would dictate. This means more sessions can be allocated to a QAM than if they were all HD streams
@@ -46,7 +46,7 @@ This calculation leads to a capacity of ~500 STB per service group. There are se
 \item A 5\% concurrency rate is on the high end of measured usages. Fluctuations to that value would be possible, but the majority of cases would be lower, and more users could be supported at lower concurrency rates. 
 \item The QRM uses smartmuxing which ``Recycles'' unused bandwidth in order to serve out more sessions than this analysis would indicate. 
 \end{enumerate}
-
+ 
 These factors provide significant leeway in capacity concerns. Operating at 500 STBs per service group would be operationally ideal, but these factors would easily allow us to reach 800 STBs per service group without concerns to the customer experience. If we were to reach 1000-1200 STBs per service group then the customer experience would begin to suffer due to Spec-Guide QAM bandwidth. 
 
 STBs per service group was measured through the CSM logs and cross checked by referencing the AMS database (but is also tracked in other ways by other groups) in order to determine if any service groups were over the relevant thresholds. Table~\ref{TABLE-HighSGUse} lists service groups to watch. It is noteworthy that the average number of STB per service group is ~100, (which is 5x lower than the first threshold) so overall we have plenty of QAM bandwidth to go around so long as it is properly allocated. 
@@ -62,7 +62,9 @@ Direct measurements of RF bandwidth in an automated fashion could be performed, 
 
 The best way to ensure we are not overrunning our QAM bandwidth is to limit the number of STBs per service group, since that is what can be controlled, and perform service group collapses and splits as needed. The recommended action is to prepare service groups for splits once they reach 500 STBs, that will leave enough time to continue to grow as those preparations are taking place. By the time a service group has 800 STBs the expectation would be that the service group is ready to split, and that would prevent it from reaching concerning levels. 
 
-The tables in Appendix~\ref{APPENDIX-CustBySGID} should be shared with the appropriate ISP groups to determine if service group splits are needed. 
+By monitoring and managing the number of STB per service group and with perfect service group balancing we can support nearly 5 Million STB on QAM markets. That kind of perfection in balancing the load across service groups would be unreasonable, but a 50\% eficiency would be easily achievable in order to support 2.5 Million STB. Projected STB count by EOY 2020 is just over 2 Million STB, which would be well within operational standards. 
+
+The table in Appendix~\ref{APPENDIX-CustBySGID} should be shared with the appropriate ISP groups to monitor for possible service group splits. Two service groups in renonv are over 500 STB and should be prepared for a split, but are not currently experiencing negative effects. 
 
 
 
@@ -159,7 +161,7 @@ Tables of SGID in a given market with number of STB in that SGID. Analysis was o
 \begin{table}[h]
 \centering
 \begin{tabular}{|l|l|l|} 
-\hline Market & SGID in PLDCOR & STB Count \\
+\hline Market & SGID & STB Count \\
 \hline renonv & 14016 & 691 \\  
 \hline renonv & 11104 & 564 \\
 \hline baysmi & 48075 & 498 \\

@@ -7,7 +7,7 @@
 
 
 \author{Brad Schoenrock\\Video Operations Engineering\\Charter Communications\\Greenwood Village, CO}
-\title{Spec-Guide QAM Bandwidth Capacity Analysis:\\Charter Internal Note.\\Draft Version 1.2.0}
+\title{Spec-Guide QAM Bandwidth Capacity Analysis:\\Charter Internal Note.\\Draft Version 1.3.0}
 \date{July. 2019}
 \begin{document}
 \maketitle
@@ -22,6 +22,8 @@
 Spec-Guide QAM bandwidth was initially a concern brought up as a possible cause of Guide Unavailable, Failure to Tune messages, and a potentially call volume generating problem. Spec-Guide QAM bandwidth is a limited resource, which scales with the number of STBs, so the capacity of the Spec-Guide QAMs is another aspect of this concern to be investigated. The architecture of the platform dictates that each service group gets exactly two Spec-Guide QAMs to serve it, with no more or less. This creates a situation where the RF bandwidth of the QAMs dictate the maximum number of STBs a service group can support. Since the QAMs themselves can't output more bandwidth (They are fixed devices that don't lend themselves to upgrades) and our architecture dictates that we can't add more than two QAMs per service group, this means that the only lever that is available to resolve such issues is managing the size and number of our service groups. We (ISP) does this routinely with service group splits and merges. When service groups get too large they are split into two different service groups, and when small service groups are near each other they are collapsed into one service group. 
 
 On a service group by service group level the QAM bandwidth is managed on the CSM by the QAM Resource Manager (QRM). The QRM is set up through configuration files, topology.xml and programs.xml. These config files define the total bandwidth output capability of the QAM for the QRM, the output frequency of the QAM, and the bandwidth expected for each type of stream (SD vs. HD, etc...) in both steady state operations as well as a maximum bandwidth usage. In this way we can monitor QAM usage and ensure there aren't any overruns. As overruns would be approached, the QRM uses smartmuxing in order to serve extra sessions when current sessions are not using up their allotted bandwidth. 
+
+If sessions begin to overrun the Spec-Guide QAM bandwidth beyond what smartmuxing could handle, the customer experience would be affected in a few ways. First the QRM will send a few frames of lower quality for sessions in order to limit the bandwidth usage. Next, users would experience pixelation of the guide interface, delayed frames, and/or dropped frames in order to maintain the integrity of the Spec-Guide QAM. As a last resort the QRM will deny new sessions outright. The QRM will not allow sessions to be sent to a QAM once the bandwidth has been entirly allocated. All of these behaviours would be recorded in CSM logs. To date there are no indications in the CSM logs that these impacts are taking place. 
 
 
 
@@ -44,6 +46,7 @@ This calculation leads to a capacity of ~500 STB per service group. There are se
 \item The average usage is lower than an HD stream would dictate. This means more sessions can be allocated to a QAM than if they were all HD streams
 \item The allocation of keeping max bandwidth in reserve per QAM is overkill. Not every session will use the max bandwidth on setup, so it is possible that less can be reserved for new sessions. 
 \item A 5\% concurrency rate is on the high end of measured usages. Fluctuations to that value would be possible, but the majority of cases would be lower, and more users could be supported at lower concurrency rates. 
+\item Suspended VOD sessions contribute to concurancy for stitchers which hold suspended sessions, and to CSMs which manage the streaming of the VOD session, but do not contribute to Spec-Guide QAM bandwidth since the VOD is handled on VOD QAMs instead of Spec-Guide QAMs.
 \item The QRM uses smartmuxing which ``Recycles'' unused bandwidth in order to serve out more sessions than this analysis would indicate. 
 \end{enumerate}
  
@@ -56,11 +59,9 @@ STBs per service group was measured through the CSM logs and cross checked by re
 \section{Conclusion}
 \label{SECTION-Conclusion}
 
-If sessions begin to overrun the Spec-Guide QAM bandwidth beyond what smartmuxing could handle, the customer experience would be affected in a few ways. First the QRM will send a few frames of lower quality for sessions in order to limit the bandwidth usage. Next, users would experience pixelation of the guide interface, delayed frames, and/or droped frames in order to maintain the integrity of the Spec-Guide QAM. As a last resort the QRM will deny new sessions outright. The QRM will not allow sessions to be sent to a QAM once the bandwidth has been entirly allocated. All of these behaviours would be recorded in CSM logs. 
+Direct measurements of RF bandwidth in an automated fashion could be performed, but since such a system is not in place that would be time consuming, costly, and manageable in other ways. The number of STBs per service group serves the same purpose in this case, and requires no further monitoring to be developed. Customers per service group is directly related to the QAM bandwidth usage, and can be used as a leading indicator of the customer experience. 
 
-Direct measurements of RF bandwidth in an automated fashion could be performed, but since such a system is not in place that would be time consuming, costly, and ultimately unneeded. The number of STBs per service group serves the same purpose in this case, and requires no further monitoring to be developed. 
-
-The best way to ensure we are not overrunning our QAM bandwidth is to limit the number of STBs per service group, since that is what can be controlled, and perform service group collapses and splits as needed. The recommended action is to prepare service groups for splits once they reach 500 STBs, that will leave enough time to continue to grow as those preparations are taking place. By the time a service group has 800 STBs the expectation would be that the service group is ready to split, and that would prevent it from reaching concerning levels. 
+The best way to ensure we are not overrunning our QAM bandwidth is to limit the number of STBs per service group, since that is what can be controlled, and perform service group collapses and splits as needed. The recommended action is to begin preparing service groups for splits once they reach 500 STBs, that will leave enough time to continue to grow as those preparations are taking place. By the time a service group has 800 STBs the expectation would be that the service group is ready to split, and that would prevent it from reaching concerning levels of 1000-1200. 
 
 By monitoring and managing the number of STB per service group and with perfect service group balancing we can support nearly 5 Million STB on QAM markets. That kind of perfection in balancing the load across service groups would be unreasonable, but a 50\% eficiency would be easily achievable in order to support 2.5 Million STB. Projected STB count by EOY 2020 is just over 2 Million STB, which would be well within operational standards. 
 
@@ -156,7 +157,7 @@ $<$/h264$>$
 \section{Appendix B\: STBs by SGID}
 \label{APPENDIX-CustBySGID}
 
-Tables of SGID in a given market with number of STB in that SGID. Analysis was of the QAM markets sldcmo, sldcla, renonv, pldcor, spdcsc, edprmn, mddcwi, and knwdmi. 
+Tables of SGID in a given market with number of STB in that SGID. Analysis was of the QAM markets sldcmo, sldcla, renonv, pldcor, spdcsc, edprmn, mddcwi, and knwdmi. Note that service groups and VOD TSID are not 1:1, so when a VOD TSID is split, the Spec-Guide service group is not always split. This is because splitting the Spec-Guide service group requires hardware changes, and is significantly more time consuming. 
 
 \begin{table}[h]
 \centering

@@ -7,7 +7,7 @@
 
 
 \author{Brad Schoenrock\\Video Operations Engineering\\Charter Communications\\Greenwood Village, CO}
-\title{Stitcher Capacity Analysis:\\Charter Internal Note.\\Draft Version 2.3.0}
+\title{Stitcher Capacity Analysis:\\Charter Internal Note.\\Draft Version 3.0.0}
 \date{Oct. 2019}
 \begin{document}
 \maketitle
@@ -423,16 +423,52 @@ Memory uplift can be performed on M4 blades with 128 GB of memory to bring them 
 
 For each RDC we would need half the number of stitchers rounded up worth of memory shipped in. So ladcca for example has 47 M4s with 128 GB of memory each, we can use that memory to fill 23 stitchers up to 256, and we would need enough memory shipped in to fill the other 24 up to 256. Deadlines on ordering this memory due to M4 end of sale concerns are expected in Q1 2020, after which memory for M4 blades will no longer be available. 
 
-\subsection{Phase 3 Mitigation}
+\subsection{Phase 3 Mitigation and future growth}
 \label{SECTION-Phase3}
 
 UPDATED Oct. 2019:
 
 Phase 3 of mitigation is intended to standardize stitcher cluster hardware across markets. Each cluster shoud have a minimum of 256 GB of memory (AV reccomendations) and a minimum of 12 stitcher blades (VidOps reccomendation). Replacements of remaining M3 blades in BHDCAL(111) would be nessicary to achieve this since M3 memory is no longer available (M3 went end of sale Dec. 31 2016, and end of hardware failure support was Dec. 31 2017). 
 
-M6 blades are anticipated to be announced Mid 2020, and some replacements of M4s to M6s are reccomended (APO and VidOps reccomendation) to avoid end of support issues in the future. A yearly 25\% blade replacment (for all blades including scalers and hypervisors, not just stitchers) is a reccomended infrastructure investment for continued support of Spec-Guide in order to sustainably maintain hardware and projected growth of the product. 
+M6 blades are anticipated to be announced Mid 2020, and some replacements of M4s to M6s are reccomended to avoid end of support issues in the future. A yearly 25\% blade replacment (for all blades including scalers and hypervisors, not just stitchers) is a reccomended infrastructure investment (APO and VidOps reccomendation) for continued support of Spec-Guide in order to sustainably maintain hardware and projected growth of the product. 
 
-Blade replacements can be performed instead of Phase 2 memory uplifts in locations described in table~\ref{TABLE-MemUpliftNeeds256} to address capacity concerns and end of life concerns. 
+Blade replacements can be performed instead of Phase 2 memory uplifts in locations described in table~\ref{TABLE-MemUpliftNeeds256} since newly purchased blades will have 256GB of memory by default which will address capacity concerns and end of life concerns in those markets. A hybrid approach could also be taken where memory is provided to uplift some markets in table~\ref{TABLE-MemUpliftNeeds256} to hold them over while other markets get a blade refresh in order to address end of life concerns and capacity more quickly. 
+
+Projections beyond 2020 become more and more uncertain for a multitude of reasons. One of which includes the addition of always on guide which introduces detached sessions which would use memory even if the user isn't in guide at the time. Another is the extent to which the SGUI team is able to limit their memory consumption. The SGUI team has stated a goal to get from 1GB average usage down to 500MB average usage. Beyond limiting their average use case limits on the largest sessions would also be a great benifit since limiting the variance in session sizes helps lower the needed headroom in the capacity calculation outlined here. At this time no concrete results have come from the SGUI team to address either session size or variance. Yet another compounding factor is the uncertainty of product provided growth metrics. 2019 growth metrics were broken down by market type, but no such breakdown has been provided beyond EOY 2019. Since we know different markets will grow at different rates this introduces a systematic uncertainty to the size of our customer base for each RDC and consequently an uncertainty in resource needs. Better estimates could be produced if market by market growth forecasts were provided. With all of those caveats, stitcher needs are shown in table~\ref{TABLE-StitchersNeeded5YR} which assume a 50\% reduction in session size, maintaining a 3\% concurency, not having always on guide, and that each market grows beyond 2019 maintaining the market shares achieved by EOY 2019 projections. 
+
+\begin{table}
+\begin{tabular}{|l|p{16mm}|p{16mm}|p{16mm}|p{16mm}|p{16mm}|} 
+\hline Market & EOY 2020 & Q2 2021 & EOY 2021 & EOY 2022 & EOY 2023\\
+\hline EDPRMN & 33  &   40 & 	47 & 	52 & 	57 \\
+\hline KNWDMI & 78 & 	95 & 	111 & 	125 & 	137 \\
+\hline MDDCWI & 88 & 	107 & 	125 & 	140 & 	154 \\
+\hline RENONV & 38 & 	46 & 	53 & 	60 & 	66 \\
+\hline SLDCMO & 103 & 	124 & 	146 & 	163 & 	180 \\
+\hline SPDCSC & 66 & 	80 & 	94 & 	105 & 	116 \\
+\hline BHDCAL & 22 & 	26 & 	31 & 	35 & 	38 \\
+\hline PLDCOR & 23 & 	28 & 	33 & 	37 & 	40 \\
+\hline BODCMA & 12 & 	15 & 	17 & 	19 & 	21 \\
+\hline DLDCTX & 17 & 	20 & 	24 & 	27 & 	29 \\
+\hline LADCCA & 33 & 	40 & 	47 & 	53 & 	59 \\
+\hline NVDCTN & 16 & 	19 & 	22 & 	25 & 	28 \\
+\hline SLDCLA & 8 & 	10 & 	12 & 	13 & 	14 \\
+\hline SLOTCA & 5 & 	6 & 	7 & 	8 & 	8 \\
+\hline BLNGMT & 8 & 	9 & 	11 & 	12 & 	13 \\
+\hline TWCCA & 78 & 	94 & 	110 & 	124 & 	136 \\
+\hline TWCNY.NYDC & 30 & 	37 & 	43 & 	48 & 	53 \\
+\hline TWCNY.SYDC & 61 & 	73 & 	86 & 	96 & 	106 \\
+\hline TWCOH & 120 & 	145 & 	170 & 	190 & 	210 \\
+\hline TWCSC & 126 & 	152 & 	179 & 	200 & 	221 \\
+\hline TWCTX & 119 & 	144 & 	169 & 	190 & 	209 \\
+\hline 
+\end{tabular}
+\caption{\label{TABLE-StitchersNeeded5YR}Stitcher need projected beyond 2020.} 
+\end{table}
+
+
+
+
+
 
 \section{Conclusion}
 \label{SECTION-Conclusion}

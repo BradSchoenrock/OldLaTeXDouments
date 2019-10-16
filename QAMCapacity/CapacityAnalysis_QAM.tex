@@ -7,8 +7,8 @@
 
 
 \author{Brad Schoenrock\\Video Operations Engineering\\Charter Communications\\Greenwood Village, CO}
-\title{Spec-Guide QAM Bandwidth Capacity Analysis:\\Charter Internal Note.\\Draft Version 1.3.0}
-\date{July. 2019}
+\title{Spec-Guide QAM Bandwidth Capacity Analysis:\\Charter Internal Note.\\Draft Version 1.3.2}
+\date{Oct. 2019}
 \begin{document}
 \maketitle
 \newpage
@@ -32,7 +32,7 @@ If sessions begin to overrun the Spec-Guide QAM bandwidth beyond what smartmuxin
 
 Each QAM has 38.8MBps of bandwidth, 37.5MBps is usable for delivery of Spec-Guide sessions which is the physical limitation of the device. With two QAMs per service group as dictated by architectural decisions, this means each service group has 75MBps of bandwidth for delivery of Spec-Guide sessions. 
 
-The QRM is configured based on actual session usage, a sample configuration can be seen in Appendix~\ref{APPENDIX-QRMConfig}. The QRM allocates 2.5MBps for the highest definition mpeg streams at steady state, and a peak of 6MBps of RF bandwidth. By monitoring the throughput of the APEX by eye in prime time these settings are matching usage within an acceptable margin of error. Average session bandwidth is between 2-2.5MBps which is below 2.5 since not every session is HD. 
+The QRM is configured based on actual session usage, a sample configuration can be seen in Appendix~\ref{APPENDIX-QRMConfig}. The QRM allocates 2.5MBps for the highest definition mpeg streams at steady state, and a peak of 6MBps of RF bandwidth. Since no API yields bandwidth information, monitoring the throughput of the APEX by eye in prime time was performed. These settings are matching usage within an acceptable margin of error. Average session bandwidth is between 2-2.5MBps which is below 2.5 since not every session is HD. 
 
 In order to define a functional capacity we need to ensure enough bandwidth to serve another session. For this reason 6MBps of bandwidth should be reserved on each QAM. The remaining 63MBps of QAM bandwidth on the service group can then serve 26 HD sessions at the configured 2.5MBps each. Maximum concurrency rate of our customer base was measured to be 5\% in stitcher capacity analysis, and while that would fluctuate more on a service group basis, it still serves as a baseline for system usage. This leads to a capacity calculation of: 
 
@@ -50,7 +50,7 @@ This calculation leads to a capacity of ~500 STB per service group. There are se
 \item The QRM uses smartmuxing which ``Recycles'' unused bandwidth in order to serve out more sessions than this analysis would indicate. 
 \end{enumerate}
  
-These factors provide significant leeway in capacity concerns. Operating at 500 STBs per service group would be operationally ideal, but these factors would easily allow us to reach 800 STBs per service group without concerns to the customer experience. If we were to reach 1000-1200 STBs per service group then the customer experience would begin to suffer due to Spec-Guide QAM bandwidth. 
+These factors provide significant leeway in capacity concerns. Operating at 500 STBs per service group would be operationally ideal, but these factors would easily allow us to reach 800 STBs per service group without concerns to the customer experience. If we were to reach 1000-1200 STBs per service group then the customer experience would potentially begin to suffer due to Spec-Guide QAM bandwidth. 
 
 STBs per service group was measured through the CSM logs and cross checked by referencing the AMS database (but is also tracked in other ways by other groups) in order to determine if any service groups were over the relevant thresholds. Table~\ref{TABLE-HighSGUse} lists service groups to watch. It is noteworthy that the average number of STB per service group is ~100, (which is 5x lower than the first threshold) so overall we have plenty of QAM bandwidth to go around so long as it is properly allocated. 
 
@@ -63,9 +63,9 @@ Direct measurements of RF bandwidth in an automated fashion could be performed, 
 
 The best way to ensure we are not overrunning our QAM bandwidth is to limit the number of STBs per service group, since that is what can be controlled, and perform service group collapses and splits as needed. The recommended action is to begin preparing service groups for splits once they reach 500 STBs, that will leave enough time to continue to grow as those preparations are taking place. By the time a service group has 800 STBs the expectation would be that the service group is ready to split, and that would prevent it from reaching concerning levels of 1000-1200. 
 
-By monitoring and managing the number of STB per service group and with perfect service group balancing we can support nearly 5 Million STB on QAM markets. That kind of perfection in balancing the load across service groups would be unreasonable, but a 50\% eficiency would be easily achievable in order to support 2.5 Million STB. Projected STB count by EOY 2020 is just over 2 Million STB, which would be well within operational standards. 
+By monitoring and managing the number of STB per service group and with perfect service group balancing we can support nearly 5 Million STB on QAM markets. That kind of perfection in balancing the load across service groups would be unreasonable, but a 50\% eficiency would be easily achievable in order to support 2.5 Million STB. Projected STB count by EOY 2020 is just over 2 Million STB, which would be well within operational standards. Beyond 2020 growth projections have not specified if that growth is expected in DOCSIS markets or QAM markets, but if current growth is an indication we will reach 3M STB by 2023 and an increases in operational efficiency or more service groups will be nessicary in the years to come. 
 
-The table in Appendix~\ref{APPENDIX-CustBySGID} should be shared with the appropriate ISP groups to monitor for possible service group splits. Two service groups in renonv are over 500 STB and should be prepared for a split, but are not currently experiencing negative effects. 
+The table in Appendix~\ref{APPENDIX-CustBySGID} should be shared with the appropriate ISP groups to monitor for possible service group splits. Four service groups in renonv are over 500 STB and should be prepared for a split, as well as one in baysmi, but are not currently experiencing negative effects. 
 
 
 
@@ -174,7 +174,28 @@ Tables of SGID in a given market with number of STB in that SGID. Analysis was o
 \hline renonv & 10050 & 464 \\
 \hline
 \end{tabular}
-\caption{\label{TABLE-HighSGUse} Service groups with over 450 STB.} 
+\caption{\label{TABLE-HighSGUse} Service groups with over 450 STB (July 2019).} 
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|} 
+\hline Market & SGID & STB Count \\
+\hline renonv & 14016 & 803 \\  
+\hline renonv & 11104 & 656 \\
+\hline baysmi & 48075 & 529 \\
+\hline stlomo & 16066 & 481 \\
+\hline stlomo & 14005 & 483 \\
+\hline madiwi & 13029 & 494 \\
+\hline ashenc & 22028 & 493 \\
+\hline renonv & 14015 & 512 \\
+\hline renonv & 10050 & 522 \\
+\hline knwdmi & 38043 & 492 \\
+\hline stlomo & 14058 & 467 \\
+\hline ashenc & 28010 & 457 \\
+\hline
+\end{tabular}
+\caption{\label{TABLE-HighSGUse} Service groups with over 450 STB (Sept 2019).} 
 \end{table}
 
 

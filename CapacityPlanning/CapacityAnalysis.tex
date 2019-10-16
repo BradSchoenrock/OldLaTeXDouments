@@ -1,0 +1,119 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,url}
+\usepackage{graphicx}
+\usepackage[table,x11names]{xcolor}
+\usepackage{float}
+
+
+
+\author{Brad Schoenrock\\Video Operations Engineering\\Charter Communications\\Greenwood Village, CO}
+\title{Spec-Guide Capacity Planning:\\Charter Internal Note.\\Draft Version 1.0.0}
+\date{Oct. 2019}
+\begin{document}
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Capacity Planning, an Introduction}
+\label{SECTION-Introduction}
+
+In 2019 Specturm Guide is growing quite aggressivly. In January we were at approx. 1.8M STB in production, and by the end of December we are projected to reach 6.7M STB supported. With growth of over 3x in one year the scalability of systems needed to be reassessed. The majority of Spectrum Guide systems were designed and/or built out at expected scale, but some assumptions in those projections haven't been re-examined since build, some assumptions made to build Spec-Guide systems have been lost to time, and since build out the environment has changed in ways that may have broken those assumptions. 
+
+The following components have been identified to be assessed. 
+
+\begin{enumerate}
+\item Central Session Manager (CSM)
+\item Stitcher 
+\item Scaler Cluster Manager (SCM)
+\item Scaler
+\item Proxy
+\item Cookie
+\item Content
+\item Universal Data Collector (UDC)
+\item Advanced Messaging Solution (AMS)
+\item Transport Stream Broadcaster (TSB)
+\item Oracle Databases
+\item Spec-Guide QAM bandwidth
+\item Hypervisor resource availability
+\item Microservices
+\end{enumerate}
+
+As guidance to the project the following outline was defined, and analysis performed for each section as it was relevant (or not) to that component.
+
+\begin{enumerate}
+\item Introduction
+  \begin{enumerate}
+  \item What does it do? 
+  \item How does it scale with customer count/content provided/other growth? 
+  \item how does it interact with adjacent systems that might cause a constraint? 
+  \item Are there any common/known reasons for failure to be addressed (tech debt)?
+  \end{enumerate}
+\item Where we stand today (assessed individually on a market/kma/service group level where appropriate) 
+  \begin{enumerate}
+  \item Memory consumption
+  \item Disk space utilization
+  \item Networking usage
+  \item Application performance
+  \item Other known tech debt that will surface in the short term (6 months)
+  \item Plans to address tech debt
+  \end{enumerate}
+\item Where we will be by EOY 2019 - 6.7M devices
+  \begin{enumerate}
+  \item Memory consumption
+  \item Disk space utilization
+  \item Networking usage
+  \item Application performance
+  \item Expected effects of addressing tech debt
+  \item Other short term mitigation strategies \& requirements 
+  \end{enumerate}
+\item Where we will be by EOY 2020 - 10M devices
+  \begin{enumerate}
+  \item ​Memory consumption
+  \item Disk space utilization
+  \item Networking usage
+  \item Application performance​
+  \item Long term resolutions \& requirements
+  \end{enumerate}
+\item Where we will be by EOY 2023 - 15M devices
+  \begin{enumerate}
+  \item ​Memory consumption
+  \item Disk space utilization
+  \item Networking usage
+  \item Application performance​
+  \item Long term resolutions \& requirements
+  \end{enumerate}
+\item Outline of mitigation and resolution strategies
+  \begin{enumerate}
+  \item Costs/timelines/steps of mitigation strategies and long term resolutions
+  \end{enumerate}
+\item Conclusion
+\end{enumerate}
+
+
+
+\newpage
+
+\section{Limitations of Operations Based Capacity Planning}
+\label{SECTION-Limitations}
+
+Spec-Guide infrastructure was, in many respects, built at scale. Because of this it became easy for developers and engineers in the past few years to assume that computational resources were plentiful and resource management wasn't an imediate concern. New feature development was prioritized, and because we weren't at scale yet, computational resources that were built in order to support growth were instead used to support expanded features. Through 2019 we are at the very beginning of identifying the ways in which feature development and growth will run up against the inherent scalability of the Spec-Guide infrastructure as it was architected. In some ways scalability of the platform is trivial, while in others it can be prohibitivly expensive. 
+
+As the operations team performing this analysis we don't have visibility into new features under development. This constitutes a blind spot in this analysis, and consequently in needed resource allocation/acquisitions. Similarly growth metrics supplied have not supplied broken down regional growth, only growth of the enterprise as a whole. As an example it is unknown to what extent growth in TWC markets will be higher than in L-CHTR markets because of legacy guide system conversions. Similarly TWCHI and BHN markets are expecting to take customers in the coming year, but expected growth for each market is unknown. 
+
+These concerns demonstrate the interdepndancy of the product, development, and operations teams in the sucess of the spectrum experience. Any analysis that involves the future of Spec-Guide that is contained to within only one vertical will inherently be of limited applicability. Any long term solution to scalability will need to be found in the cooperation of these teams either in a more DevOps style environment, or by a dedicated joint effort. 
+
+
+
+\newpage
+
+\section{Conclusion}
+\label{SECTION-Conclusion}
+
+The documents that follow were created for each component of the Spec-Guide architecture, and describe the current needs of the platform based on known growth and usage as implemented in 2019. In several cases technical debt prevented/continues to prevent accurate capacity planning due to resources being unessicarly used. For example, a memory leak on the TSBs prevents our ability to understand the memory utilization of a healthy TSB. Similarly logrotation on stitchers, scalers, and proxies needed to be addressed before disk space could be assessed for those components. Many of the documents that follow highlight important pieces of technical debt which may present scalability issues or issues in our ability to assess scalability. These concerns represent risks to the Spectrum Guide platform, and to the continued sucess of the Spectrum Guide experience. 
+
+
+
+\end{document}
+

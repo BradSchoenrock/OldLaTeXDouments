@@ -59,7 +59,7 @@ Stitchers already have ATS DB on a seperate 21GB partition, with a DB size of 15
 
 ATS logs its own processes in binary format under a shared logging mount in /var/log. The binary format can be decoded locally on the proxy with the traffic\_logcat command, but are not able to be uploaded into a querieable application such as Kibana or Splunk. Formatting in binary is a configurable setting, and it would be worthwhile for those logs to be saved in ascii and uploaded in order to be visible to other groups in the organization for debugging their own processes which might be using ATS on both stitchers and proxies. 
 
-
+Total disk space allocated for proxies was 190GB in L-CHTR and was originally 150GB in TWC and BHN. Some TWC and BHN markets have been re provisioned to 190GB as the opportunity presented itself. There are two notable exceptions, BODCMA and DLDCTX were given 633 GB of disk space, and RENONV has 140GB. The excess disk space in BODCMA and DLDCTX is partitioned to /var and is going unused. Eventually it is reccomended all proxies be given 190GB of disk space for standardization. 
 
 \section{Application Performance}
 \label{SECTION-APPPerf}

@@ -1,0 +1,15 @@
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline slotca-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 421 & 421.000000 & 421.000000 & 421.000000 \\
+\hline mean & 0 days 00:33:58.508313 & 0.677910 & 32.083658 & 92918.673701 \\
+\hline std & 0 days 00:41:36.883165 & 2.216478 & 1.542743 & 8403.845534 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.756000 & 83987.668000 \\
+\hline 25\% & 0 days 00:02:46 & 0.000000 & 31.316000 & 84584.304000 \\
+\hline 50\% & 0 days 00:19:08 & 0.000000 & 31.564000 & 84782.952000 \\
+\hline 75\% & 0 days 00:52:49 & 0.300000 & 32.140000 & 101417.836000 \\
+\hline max & 0 days 04:48:42 & 21.500000 & 40.276000 & 101615.464000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-slotca-WebKitNet}
+\end{table}

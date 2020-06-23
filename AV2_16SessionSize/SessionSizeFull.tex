@@ -1,0 +1,1252 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,url}
+\usepackage{graphicx}
+\usepackage[table,x11names]{xcolor}
+\usepackage{float}
+
+
+
+\author{Brad Schoenrock\\Video Operations Engineering\\Charter Communications\\Greenwood Village, CO}
+\title{AV2.16 Stitcher/Session Memory Use - All markets\\Charter Internal Note.\\Draft Version 1.0.0}
+\date{Jun 2020}
+\begin{document}
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+
+
+\section{Introduction}
+\label{SECTION-Introduction}
+
+Session Size analysis was performed in AV2.11, which showed memory usage to be significantly higher than was expected. AV2.16 brings changes to webkit, which are expected to bring the largest sessions down in size due to improvements to the garbage collector which de-allocates memory which is no longer in use. Further improvements are expected with the delivery of changes to SGUI's NNS project. With these performance improvements underway, this document serves as a look into the performance provided by the switch to Webkit-V3 bundled in the deployment of AV2.16. 
+
+
+
+\section{RSS vs. SIZE}
+\label{SECTION-RSS}
+
+The Resident Set Size(RSS) of a process in Linux is a measure of memory used, but does not include memory which is swapped out, or memory which is being used in shared memory libraries. Virtual Memory Size (VMS) aka SIZE includes all memory the process can access, including swap memory and memory which has been allocated but not used. This means that RSS under-reports memory used, while VMS over-reports memory used. In AV2.16 VMS has become unusable for capacity planning because of how memory is allocated in webkit-V3. RSS in AV2.16. Linux reports that RSS used by a webkit process may be 380 MB, while the VMS is allocating 100GB per session on stitchers that only have 128 GB or 256 GB of memory. There are three usual causes for large virtual memory utilization which don't materialize into real memory usage as we are seeing. Those are extensive use of swap memory, use of large shared libraries, and memory which is allocated to the buffer/cache but is not used. A 'free -m' command reveals no use of swap memory, some use of shared memory, but does show up as a significant allocation to buffer/cache memory. The use of buffer/cache memory was also present in AV2.11, but did not show in the VMS SIZE reporting. Some shared memory libraries are being used, but not at the level to explain the VMS reported size of each process. A better understanding of how webkit manages its memory allocations and shared memory will be necessary going forward to ensure accurate capacity planning can be accomplished in AV2.16+ environments. 
+
+
+
+\section{Memory Consumption AV2.11}
+\label{SECTION-211Memory}
+
+
+The memory utilization of the html5client process on the Portland stitchers in AV2.11 is summarized in table~\ref{TABLE-AV211SessionSize}. Here we can see the difference between RSS and VMS reported by Linux. The average AV2.11 session is using 815MB of memory when reported by RSS, and 1175 MB (over 1 GB) of memory when reported by SIZE (VMS). This difference comes down to buffer/cache memory and shared memory utilization in the webkit-V2 environment. It is worth noting that the largest session in Portland at the time of measurement was 6.7GB RSS which corresponds to 8.7GB VMS.
+
+
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline pldcor& ELAPSED&   CPU\%&  RSS(mb)&   SIZE(mb) \\
+\hline count&    389& 389.000000&  389.000000&  389.00000 \\
+\hline mean&  1 days 05:24:52.033419&  11.805141&  815.620380& 1175.33370 \\
+\hline std&  5 days 16:38:37.442890&  24.115209&  733.513476& 1041.47454 \\
+\hline min&   0 days 00:00:01&  0.000000&  125.612000&  211.30800 \\
+\hline 25\%&   0 days 00:01:08&  0.300000&  330.576000&  576.40000 \\
+\hline 50\%&   0 days 00:14:33&  2.300000&  636.780000&  919.36800 \\
+\hline 75\%&   0 days 01:38:37&  8.500000& 1054.984000& 1405.63200 \\
+\hline max&  37 days 14:45:31&  99.900000& 6727.340000& 8748.13200 \\
+\hline 
+\end{tabular}
+\caption{\label{TABLE-AV211SessionSize}Size of the html5client in AV2.11 from PLDCOR.} 
+\end{table}
+
+
+
+\newpage
+
+\section{Memory Consumption AV2.16}
+\label{SECTION-216Memory}
+
+The one html5client process from AV2.11 has been split up into three processes in AV2.16. Those three processes are html5client-v3, WebKitWebProces, and WebKitNetworkProcess. Use metrics for html5client-v3 can be seen in appendix~\ref{APPENDIX-SessionSizeTables-html5}. Use metrics for WebKitWebProces can be seen in appendix~\ref{APPENDIX-SessionSizeTables-WebKitWeb}. Use metrics for WebKitNetworkProcess can be seen in appendix~\ref{APPENDIX-SessionSizeTables-WebKitNet}. All three of these processes contribute to session memory utilization. 
+
+By taking these three processes and combining them we can get a comparable result for session memory utilization. Each process's average utilization can be added, and their standard deviations can be added in quadrature to yield a meaningful result. Take Portland as an example to compare with the 2.11 results presented in the previous section. The html5 process has RSS of $43 \pm 8$ MB, WebkitWeb $292 \pm 89$ MB, and WebKitNet $32 \pm 2$ MB. This gives an overall session RSS of $367 \pm 85$ MB. Because of the overallocation of memory by webkit-v3 a result for the VMS SIZE is not meaningful. This RSS measurement, by the nature of how RSS is reported, under-represents the actual memory used. The use of 'free -m revealed approx 1-3 GB of shared libraries loaded into memory in pldcor which is not included in the RSS session size reporting. Shared memory increased in bodcma (a docsis market) from AV2.11 to AV2.16, from between 2-5GB in AV2.11 up to 7-10GB in AV2.16 per stitcher. Further measurements of shared memory use will be required to fully assess capacity on a per market basis. Session size, however, will be the majority contributer to capacity, using approx. 10x more memory than shared memory allocations even with the increases in shared memory. 
+
+
+
+\section{Impacts on Capacity Modeling}
+\label{SECTION-CapacityModel}
+
+Since the core processes of how SGUI is delivered, changes to the capacity model are required. The old capacity model is $$Capacity_{AV2.11}=\frac{Mem * 0.8 * 1000}{SesSize + 2.32*SesVar}$$ which is described in the stitcher capacity document. Since that was based on one process the $SesSize$ and $SesVar$ were more easily measurable. With three processes the $Size$ and $Var$ for each of the three processes are needed. Sizes can be measured in the same way for each process, and then added for a total average session size. The $Var$ needs to be measured for each process, and then added in quadrature. This means $SesVar=\sqrt{Var_{html}^2 + Var_{WebKitWeb}^2 + Var_{WebKitNet}^2}$. Because the use of RSS is required shared memory use also must be included in order to get accurate memory use. This means that an allocation for shared memory use must be subtracted from the total available memory. This means the new capacity model adjusted for changes in AV2.16 is $$Capacity_{AV2.16}=\frac{Mem * 0.8 * 1000 - (SharedMem + 2.32*SharedMemVar)}{SesSize + 2.32*SesVar}$$ where $SharedMem$ is the average shared memory for stitchers on the market, $SharedMemVar$ is the standard deviation of shared memory for stitchers on the market, $SesSize$ and $SesVar$ have been adjusted to account for all three processes as described above, and an allocation of 2.32 standard deviations has been made to account for stitchers using above average shared memroy. The 2.32 factor is the statistical Z-Score corresponding to 99\% coverage for this allocation.
+
+
+
+\section{Conclusion}
+\label{SECTION-Conclusion}
+
+In AV2.11 average session RSS was approx. 750 MB (See 2018 stitcher capacity analysis documentation for further 2.11 session resource and capacity information). In 2.16 RSS averaged approx. 350 MB, which is a reduction of nearly 55\%. The reduction in variance of session size will also have an outsized effect in reducing stitcher capacity requirements since production is no longer required to support sessions that could grow to take up to 20 GB of memory in the extreme cases. Furthermore differences between RDCs have all but disapeared. In 2.11 session size was considerably larger in QAM markets compared to DOCSIS, and since all sessions were brought down to a fixed size QAM markets saw a greater reduction in memory use and a greater reclaimation of capacity. Capacity analysis for the 2021 budget year will be based upon the resource utalization in this session size analysis. 
+
+
+
+\newpage
+
+
+
+\appendix
+
+\section{Appendix A Session Size html5client-v3}
+\label{APPENDIX-SessionSizeTables-html5}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhdcal-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1610 & 1610.000000 & 1610.000000 & 1610.000000 \\
+\hline mean & 0 days 00:48:57.392546 & 0.845776 & 41.728122 & 91930.678482 \\
+\hline std & 0 days 01:09:19.679782 & 1.445749 & 6.657195 & 8373.806943 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 18.944000 & 83989.664000 \\
+\hline 25\% & 0 days 00:03:39.500000 & 0.000000 & 37.317000 & 84086.631000 \\
+\hline 50\% & 0 days 00:25:32.500000 & 0.200000 & 41.290000 & 84104.786000 \\
+\hline 75\% & 0 days 01:11:35.750000 & 1.100000 & 45.269000 & 100863.684000 \\
+\hline max & 0 days 15:27:45 & 18.700000 & 65.468000 & 100898.256000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhdcal-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnal-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 33 & 33.000000 & 33.000000 & 33.000000 \\
+\hline mean & 0 days 01:11:55.909090 & 0.200000 & 43.264000 & 88153.098061 \\
+\hline std & 0 days 01:35:45.977105 & 0.280624 & 8.563597 & 7296.931955 \\
+\hline min & 0 days 00:01:50 & 0.000000 & 26.648000 & 84058.288000 \\
+\hline 25\% & 0 days 00:17:19 & 0.000000 & 38.828000 & 84084.476000 \\
+\hline 50\% & 0 days 00:44:06 & 0.100000 & 42.940000 & 84091.516000 \\
+\hline 75\% & 0 days 01:17:18 & 0.300000 & 45.356000 & 84107.096000 \\
+\hline max & 0 days 08:15:11 & 1.200000 & 62.840000 & 100882.392000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnal-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnca-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 66 & 66.000000 & 66.000000 & 66.000000 \\
+\hline mean & 0 days 00:36:18.984848 & 0.821212 & 42.186182 & 93738.547697 \\
+\hline std & 0 days 00:46:33.948633 & 1.127081 & 9.229592 & 8356.842430 \\
+\hline min & 0 days 00:00:02 & 0.000000 & 26.740000 & 84015.276000 \\
+\hline 25\% & 0 days 00:02:46.250000 & 0.025000 & 37.045000 & 84088.740000 \\
+\hline 50\% & 0 days 00:12:23.500000 & 0.200000 & 40.024000 & 100837.102000 \\
+\hline 75\% & 0 days 00:57:01.250000 & 1.500000 & 45.443000 & 100862.645000 \\
+\hline max & 0 days 03:23:06 & 4.600000 & 79.152000 & 100887.136000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnca-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnfl-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 15 & 15.000000 & 15.000000 & 15.000000 \\
+\hline mean & 0 days 00:27:13.333333 & 0.886667 & 39.752800 & 88552.313067 \\
+\hline std & 0 days 00:40:27.321618 & 1.199921 & 5.484201 & 7679.358397 \\
+\hline min & 0 days 00:00:11 & 0.000000 & 32.364000 & 84056.800000 \\
+\hline 25\% & 0 days 00:01:39.500000 & 0.100000 & 37.210000 & 84071.544000 \\
+\hline 50\% & 0 days 00:05:53 & 0.500000 & 38.784000 & 84089.080000 \\
+\hline 75\% & 0 days 00:27:23 & 1.100000 & 40.832000 & 92467.026000 \\
+\hline max & 0 days 02:00:49 & 4.700000 & 56.468000 & 100866.324000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnfl-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnoh-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 67 & 67.000000 & 67.000000 & 67.000000 \\
+\hline mean & 0 days 00:57:42.402985 & 0.611940 & 41.536537 & 91846.414149 \\
+\hline std & 0 days 01:13:40.561314 & 1.230364 & 6.609191 & 8428.230055 \\
+\hline min & 0 days 00:00:08 & 0.000000 & 25.668000 & 84040.620000 \\
+\hline 25\% & 0 days 00:06:05 & 0.000000 & 37.174000 & 84087.300000 \\
+\hline 50\% & 0 days 00:36:09 & 0.100000 & 41.248000 & 84102.192000 \\
+\hline 75\% & 0 days 01:22:45 & 0.650000 & 46.014000 & 100861.276000 \\
+\hline max & 0 days 07:02:36 & 7.400000 & 58.140000 & 100885.588000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnoh-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline blngmt-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 384 & 384.000000 & 384.000000 & 384.000000 \\
+\hline mean & 0 days 00:45:19.510416 & 0.800781 & 42.885448 & 92036.232146 \\
+\hline std & 0 days 00:55:09.336985 & 1.253788 & 7.546467 & 8388.127074 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 25.868000 & 84014.252000 \\
+\hline 25\% & 0 days 00:03:10.500000 & 0.000000 & 38.267000 & 84087.370000 \\
+\hline 50\% & 0 days 00:24:52 & 0.200000 & 41.636000 & 84103.220000 \\
+\hline 75\% & 0 days 01:10:04.500000 & 1.200000 & 46.807000 & 100864.849000 \\
+\hline max & 0 days 05:06:35 & 7.500000 & 70.920000 & 100891.776000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-blngmt-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bodcma-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 745 & 745.000000 & 745.000000 & 745.000000 \\
+\hline mean & 0 days 00:49:00.148993 & 0.693691 & 41.046862 & 93993.010851 \\
+\hline std & 0 days 01:05:13.394838 & 1.300600 & 6.449886 & 8254.543074 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.616000 & 84014.256000 \\
+\hline 25\% & 0 days 00:04:43 & 0.000000 & 36.728000 & 84091.800000 \\
+\hline 50\% & 0 days 00:26:31 & 0.100000 & 40.520000 & 100843.152000 \\
+\hline 75\% & 0 days 01:06:58 & 0.800000 & 44.704000 & 100866.328000 \\
+\hline max & 0 days 10:56:47 & 10.300000 & 67.116000 & 100895.516000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bodcma-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline dldctx-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1171 & 1171.000000 & 1171.000000 & 1171.000000 \\
+\hline mean & 0 days 00:49:34.921434 & 0.778309 & 41.617196 & 91175.302179 \\
+\hline std & 0 days 01:06:54.700392 & 1.536332 & 6.493075 & 8291.596696 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.892000 & 83989.668000 \\
+\hline 25\% & 0 days 00:04:10 & 0.000000 & 37.440000 & 84083.408000 \\
+\hline 50\% & 0 days 00:27:16 & 0.200000 & 41.152000 & 84099.524000 \\
+\hline 75\% & 0 days 01:11:29.500000 & 0.900000 & 45.124000 & 100860.032000 \\
+\hline max & 0 days 14:05:44 & 22.500000 & 67.480000 & 100894.396000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-dldctx-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline edprmn-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 480 & 480.000000 & 480.000000 & 480.000000 \\
+\hline mean & 0 days 00:54:37.502083 & 0.286042 & 43.525900 & 94531.532375 \\
+\hline std & 0 days 01:11:51.282699 & 0.582910 & 8.159511 & 8138.434973 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.052000 & 84017.336000 \\
+\hline 25\% & 0 days 00:10:01.750000 & 0.000000 & 38.330000 & 84091.038000 \\
+\hline 50\% & 0 days 00:37:08 & 0.000000 & 42.862000 & 100843.978000 \\
+\hline 75\% & 0 days 01:11:03 & 0.200000 & 48.024000 & 100863.833000 \\
+\hline max & 0 days 14:02:59 & 4.300000 & 74.444000 & 100895.440000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-edprmn-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline knwdmi-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1201 & 1201.000000 & 1201.000000 & 1201.000000 \\
+\hline mean & 0 days 00:56:36.631973 & 0.385845 & 44.459694 & 91764.100150 \\
+\hline std & 0 days 01:11:19.525166 & 0.758858 & 8.467042 & 8362.269247 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.864000 & 84017.332000 \\
+\hline 25\% & 0 days 00:05:43 & 0.000000 & 38.672000 & 84081.488000 \\
+\hline 50\% & 0 days 00:32:46 & 0.100000 & 43.260000 & 84102.176000 \\
+\hline 75\% & 0 days 01:17:35 & 0.400000 & 49.576000 & 100859.040000 \\
+\hline max & 0 days 10:19:45 & 8.600000 & 83.508000 & 100889.488000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-knwdmi-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline ladcca-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1403 & 1403.000000 & 1403.000000 & 1403.000000 \\
+\hline mean & 0 days 00:38:09.417676 & 0.817676 & 45.029577 & 90371.369996 \\
+\hline std & 0 days 00:54:53.942138 & 1.403054 & 9.515955 & 8124.644536 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.392000 & 84014.252000 \\
+\hline 25\% & 0 days 00:03:12.500000 & 0.000000 & 38.124000 & 84081.162000 \\
+\hline 50\% & 0 days 00:20:48 & 0.200000 & 43.364000 & 84095.888000 \\
+\hline 75\% & 0 days 00:56:39.500000 & 1.000000 & 51.788000 & 100854.438000 \\
+\hline max & 0 days 14:18:11 & 13.800000 & 74.624000 & 100893.364000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-ladcca-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline mddcwi-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1186 & 1186.000000 & 1186.000000 & 1186.000000 \\
+\hline mean & 0 days 00:53:53.714165 & 0.354553 & 43.928698 & 91918.874364 \\
+\hline std & 0 days 01:06:24.654938 & 0.634294 & 8.526275 & 8374.604469 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 22.904000 & 84014.260000 \\
+\hline 25\% & 0 days 00:05:43.250000 & 0.000000 & 38.162000 & 84083.415000 \\
+\hline 50\% & 0 days 00:31:22 & 0.100000 & 43.000000 & 84101.752000 \\
+\hline 75\% & 0 days 01:17:13.250000 & 0.400000 & 49.064000 & 100861.746000 \\
+\hline max & 0 days 07:30:47 & 4.400000 & 80.688000 & 100888.892000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-mddcwi-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline nvdctn-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1094 & 1094.000000 & 1094.000000 & 1094.000000 \\
+\hline mean & 0 days 00:52:06.447897 & 0.845887 & 41.872998 & 93976.009832 \\
+\hline std & 0 days 01:14:26.437044 & 1.375979 & 6.696925 & 8257.379288 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.928000 & 84014.252000 \\
+\hline 25\% & 0 days 00:03:12.250000 & 0.000000 & 37.437000 & 84091.606000 \\
+\hline 50\% & 0 days 00:27:01 & 0.200000 & 41.252000 & 100842.892000 \\
+\hline 75\% & 0 days 01:10:19.250000 & 1.175000 & 45.632000 & 100868.118000 \\
+\hline max & 0 days 11:03:42 & 12.000000 & 66.340000 & 100898.100000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-nvdctn-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline pldcor-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 584 & 584.000000 & 584.000000 & 584.000000 \\
+\hline mean & 0 days 00:40:51.208904 & 0.487500 & 42.592384 & 90888.734747 \\
+\hline std & 0 days 00:56:35.332522 & 0.853927 & 7.694936 & 8245.385651 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.092000 & 84014.256000 \\
+\hline 25\% & 0 days 00:02:59.750000 & 0.000000 & 37.645000 & 84079.467000 \\
+\hline 50\% & 0 days 00:22:36 & 0.100000 & 41.868000 & 84096.716000 \\
+\hline 75\% & 0 days 00:58:13.250000 & 0.700000 & 47.186000 & 100855.745000 \\
+\hline max & 0 days 10:31:57 & 7.900000 & 72.548000 & 100890.632000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-pldcor-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline renonv-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 454 & 454.000000 & 454.000000 & 454.000000 \\
+\hline mean & 0 days 00:45:45.182819 & 0.432379 & 42.805947 & 93172.691392 \\
+\hline std & 0 days 00:58:36.935983 & 0.753702 & 7.549233 & 8368.965441 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.204000 & 84014.260000 \\
+\hline 25\% & 0 days 00:04:22.500000 & 0.000000 & 38.010000 & 84086.378000 \\
+\hline 50\% & 0 days 00:27:25 & 0.100000 & 41.950000 & 100834.294000 \\
+\hline 75\% & 0 days 01:02:54 & 0.600000 & 47.473000 & 100863.291000 \\
+\hline max & 0 days 07:47:15 & 6.400000 & 68.380000 & 100889.688000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-renonv-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline sldcla-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 358 & 358.000000 & 358.000000 & 358.000000 \\
+\hline mean & 0 days 00:53:47.952513 & 0.313966 & 44.151229 & 92704.113318 \\
+\hline std & 0 days 01:05:31.936912 & 0.664317 & 8.465915 & 8396.835646 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 19.124000 & 84014.252000 \\
+\hline 25\% & 0 days 00:10:17.250000 & 0.000000 & 38.100000 & 84083.028000 \\
+\hline 50\% & 0 days 00:35:28.500000 & 0.000000 & 42.828000 & 100821.002000 \\
+\hline 75\% & 0 days 01:10:26.750000 & 0.300000 & 49.422000 & 100861.007000 \\
+\hline max & 0 days 09:20:16 & 5.400000 & 71.148000 & 100886.332000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-sldcla-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline sldcmo-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1960 & 1960.000000 & 1960.000000 & 1960.000000 \\
+\hline mean & 0 days 00:57:12.254081 & 0.339796 & 45.220496 & 92136.842069 \\
+\hline std & 0 days 01:08:44.584893 & 0.665521 & 8.924608 & 8384.051131 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.640000 & 84014.260000 \\
+\hline 25\% & 0 days 00:08:22.500000 & 0.000000 & 38.971000 & 84084.049000 \\
+\hline 50\% & 0 days 00:34:50.500000 & 0.100000 & 44.126000 & 84106.528000 \\
+\hline 75\% & 0 days 01:19:10.250000 & 0.300000 & 51.000000 & 100861.550000 \\
+\hline max & 0 days 07:59:52 & 7.000000 & 77.400000 & 100891.412000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-sldcmo-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline slotca-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 415 & 415.000000 & 415.000000 & 415.000000 \\
+\hline mean & 0 days 00:34:48.346987 & 0.891807 & 39.374467 & 93948.175672 \\
+\hline std & 0 days 00:41:46.707269 & 1.481881 & 5.702702 & 8268.092300 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.184000 & 84014.252000 \\
+\hline 25\% & 0 days 00:03:24 & 0.000000 & 35.796000 & 84089.894000 \\
+\hline 50\% & 0 days 00:19:58 & 0.300000 & 38.640000 & 100842.732000 \\
+\hline 75\% & 0 days 00:53:37 & 1.100000 & 42.374000 & 100867.184000 \\
+\hline max & 0 days 04:49:07 & 14.600000 & 60.432000 & 100887.364000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-slotca-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline spdcsc-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1837 & 1837.000000 & 1837.000000 & 1837.000000 \\
+\hline mean & 0 days 00:56:19.407729 & 0.382744 & 45.440627 & 92354.721653 \\
+\hline std & 0 days 01:06:18.372934 & 0.717940 & 9.169870 & 8390.665577 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.852000 & 84014.264000 \\
+\hline 25\% & 0 days 00:05:33 & 0.000000 & 39.040000 & 84082.824000 \\
+\hline 50\% & 0 days 00:35:42 & 0.100000 & 44.368000 & 84108.360000 \\
+\hline 75\% & 0 days 01:23:42 & 0.400000 & 51.016000 & 100860.996000 \\
+\hline max & 0 days 09:28:03 & 6.300000 & 76.912000 & 100891.812000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-spdcsc-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twcca-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 4761 & 4761.000000 & 4761.000000 & 4761.000000 \\
+\hline mean & 0 days 00:38:55.805713 & 0.820542 & 40.422416 & 93456.270878 \\
+\hline std & 0 days 00:47:51.967876 & 1.418966 & 5.940839 & 8331.725355 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.012000 & 84014.252000 \\
+\hline 25\% & 0 days 00:03:49 & 0.000000 & 36.588000 & 84087.724000 \\
+\hline 50\% & 0 days 00:22:58 & 0.200000 & 39.928000 & 100837.940000 \\
+\hline 75\% & 0 days 00:58:38 & 1.000000 & 43.836000 & 100864.708000 \\
+\hline max & 0 days 13:02:42 & 12.500000 & 64.516000 & 100904.192000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twcca-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twchi-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 6 & 6.000000 & 6.000000 & 6.000000 \\
+\hline mean & 0 days 00:10:16.333333 & 1.483333 & 41.636667 & 98060.518000 \\
+\hline std & 0 days 00:13:13.268344 & 1.227056 & 6.002969 & 6842.062535 \\
+\hline min & 0 days 00:00:40 & 0.300000 & 31.196000 & 84094.252000 \\
+\hline 25\% & 0 days 00:00:49 & 0.550000 & 40.030000 & 100834.662000 \\
+\hline 50\% & 0 days 00:03:31.500000 & 1.250000 & 42.996000 & 100849.028000 \\
+\hline 75\% & 0 days 00:17:30.500000 & 2.025000 & 44.279000 & 100860.622000 \\
+\hline max & 0 days 00:31:50 & 3.500000 & 48.884000 & 100876.440000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twchi-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twcoh-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 7620 & 7620.000000 & 7620.000000 & 7620.000000 \\
+\hline mean & 0 days 00:45:03.941076 & 0.931890 & 40.602969 & 92051.391410 \\
+\hline std & 0 days 01:04:53.740665 & 1.482979 & 6.494754 & 8444.836492 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 0.000000 & 0.000000 \\
+\hline 25\% & 0 days 00:02:03 & 0.000000 & 36.356000 & 84083.491000 \\
+\hline 50\% & 0 days 00:19:43 & 0.300000 & 40.094000 & 84105.324000 \\
+\hline 75\% & 0 days 01:04:31.500000 & 1.300000 & 44.412000 & 100860.291000 \\
+\hline max & 0 days 15:35:31 & 29.000000 & 68.484000 & 100901.460000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twcoh-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twcsc-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 6061 & 6061.000000 & 6061.000000 & 6061.000000 \\
+\hline mean & 0 days 00:46:59.775944 & 0.766029 & 41.609517 & 92597.825228 \\
+\hline std & 0 days 01:07:10.353304 & 1.342303 & 6.686711 & 8388.101676 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.712000 & 84014.252000 \\
+\hline 25\% & 0 days 00:03:44 & 0.000000 & 37.184000 & 84084.088000 \\
+\hline 50\% & 0 days 00:26:08 & 0.200000 & 41.312000 & 100815.384000 \\
+\hline 75\% & 0 days 01:06:43 & 1.000000 & 45.640000 & 100860.784000 \\
+\hline max & 0 days 21:03:24 & 25.300000 & 74.492000 & 100893.512000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twcsc-html}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twctx-html & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 6688 & 6688.000000 & 6688.000000 & 6688.000000 \\
+\hline mean & 0 days 00:44:31.546949 & 0.724940 & 40.468510 & 92066.971871 \\
+\hline std & 0 days 00:55:13.246938 & 1.347925 & 6.171599 & 8379.099236 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 16.700000 & 83989.668000 \\
+\hline 25\% & 0 days 00:04:54.250000 & 0.000000 & 36.487000 & 84084.712000 \\
+\hline 50\% & 0 days 00:26:51 & 0.200000 & 40.156000 & 84103.450000 \\
+\hline 75\% & 0 days 01:05:55.250000 & 0.800000 & 44.197000 & 100861.461000 \\
+\hline max & 0 days 20:42:06 & 17.000000 & 72.108000 & 100895.256000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twctx-html}
+\end{table}
+
+
+\newpage
+
+
+
+\appendix
+
+\section{Appendix B Session Size WebKitWeb}
+\label{APPENDIX-SessionSizeTables-WebKitWeb}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhdcal-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1641 & 1641.000000 & 1641.000000 & 1641.000000 \\
+\hline mean & 0 days 00:47:59.734917 & 6.607861 & 269.074430 & 93265.316458 \\
+\hline std & 0 days 01:08:53.540465 & 15.080158 & 79.533106 & 8394.958052 \\
+\hline min & 0 days 00:00:01 & 0.100000 & 137.212000 & 84677.552000 \\
+\hline 25\% & 0 days 00:03:14 & 0.400000 & 207.888000 & 85007.840000 \\
+\hline 50\% & 0 days 00:24:17 & 1.200000 & 244.628000 & 85514.572000 \\
+\hline 75\% & 0 days 01:10:41 & 6.600000 & 324.044000 & 101783.220000 \\
+\hline max & 0 days 15:26:59 & 174.000000 & 751.600000 & 102977.948000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhdcal-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnal-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 33 & 33.000000 & 33.000000 & 33.000000 \\
+\hline mean & 0 days 01:11:32.878787 & 1.060606 & 278.651030 & 94285.292485 \\
+\hline std & 0 days 01:35:45.949952 & 1.561638 & 112.875977 & 8534.306397 \\
+\hline min & 0 days 00:01:27 & 0.100000 & 151.680000 & 84767.788000 \\
+\hline 25\% & 0 days 00:16:56 & 0.300000 & 193.936000 & 85009.672000 \\
+\hline 50\% & 0 days 00:43:43 & 0.500000 & 225.848000 & 101715.160000 \\
+\hline 75\% & 0 days 01:16:55 & 1.400000 & 372.560000 & 101869.692000 \\
+\hline max & 0 days 08:14:48 & 8.800000 & 544.792000 & 102540.112000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnal-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnca-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 65 & 65.000000 & 65.000000 & 65.000000 \\
+\hline mean & 0 days 00:36:22.800000 & 4.886154 & 269.882462 & 93346.691138 \\
+\hline std & 0 days 00:46:35.528763 & 7.096740 & 93.165616 & 8475.284030 \\
+\hline min & 0 days 00:00:09 & 0.100000 & 161.472000 & 84757.680000 \\
+\hline 25\% & 0 days 00:02:26 & 0.400000 & 197.236000 & 84983.564000 \\
+\hline 50\% & 0 days 00:12:17 & 1.300000 & 249.900000 & 85846.312000 \\
+\hline 75\% & 0 days 00:56:44 & 5.500000 & 321.364000 & 101823.024000 \\
+\hline max & 0 days 03:22:28 & 27.400000 & 644.460000 & 102331.516000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnca-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnfl-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 19 & 19.000000 & 19.000000 & 19.000000 \\
+\hline mean & 0 days 00:21:37.842105 & 9.536842 & 260.241474 & 93034.752421 \\
+\hline std & 0 days 00:36:04.607489 & 19.080916 & 59.047020 & 8543.206687 \\
+\hline min & 0 days 00:00:02 & 0.200000 & 178.900000 & 84961.856000 \\
+\hline 25\% & 0 days 00:01:35 & 1.150000 & 227.052000 & 85119.464000 \\
+\hline 50\% & 0 days 00:04:21 & 4.700000 & 256.548000 & 85527.220000 \\
+\hline 75\% & 0 days 00:19:50.500000 & 7.250000 & 289.726000 & 101728.210000 \\
+\hline max & 0 days 01:58:12 & 83.500000 & 415.448000 & 102042.076000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnfl-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnoh-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 61 & 61.000000 & 61.000000 & 61.000000 \\
+\hline mean & 0 days 01:02:15.262295 & 3.540984 & 277.482098 & 92011.115344 \\
+\hline std & 0 days 01:14:50.980976 & 7.663276 & 105.821296 & 8390.983725 \\
+\hline min & 0 days 00:00:07 & 0.100000 & 166.048000 & 84708.428000 \\
+\hline 25\% & 0 days 00:12:20 & 0.300000 & 201.144000 & 84990.752000 \\
+\hline 50\% & 0 days 00:39:16 & 0.500000 & 240.728000 & 85292.432000 \\
+\hline 75\% & 0 days 01:27:28 & 2.300000 & 337.684000 & 101810.632000 \\
+\hline max & 0 days 07:01:28 & 34.100000 & 761.628000 & 103177.336000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnoh-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline blngmt-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 387 & 387.000000 & 387.000000 & 387.000000 \\
+\hline mean & 0 days 00:44:46.739018 & 5.257106 & 274.923917 & 93677.883370 \\
+\hline std & 0 days 00:54:59.482207 & 11.680765 & 88.782132 & 8422.266642 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.196000 & 84662.068000 \\
+\hline 25\% & 0 days 00:02:54 & 0.400000 & 210.560000 & 85005.990000 \\
+\hline 50\% & 0 days 00:24:07 & 0.900000 & 244.248000 & 101599.704000 \\
+\hline 75\% & 0 days 01:09:42 & 5.600000 & 336.486000 & 101816.084000 \\
+\hline max & 0 days 05:06:16 & 112.000000 & 978.920000 & 103313.068000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-blngmt-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bodcma-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 757 & 757.000000 & 757.000000 & 757.000000 \\
+\hline mean & 0 days 00:48:36.417437 & 4.956803 & 268.058225 & 93761.174880 \\
+\hline std & 0 days 01:04:42.106945 & 13.092361 & 83.362128 & 8397.483852 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 85.064000 & 84523.628000 \\
+\hline 25\% & 0 days 00:04:42 & 0.300000 & 203.056000 & 85019.428000 \\
+\hline 50\% & 0 days 00:26:18 & 0.800000 & 243.484000 & 101589.704000 \\
+\hline 75\% & 0 days 01:06:20 & 3.600000 & 328.416000 & 101798.500000 \\
+\hline max & 0 days 10:55:42 & 148.000000 & 686.072000 & 102851.056000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bodcma-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline dldctx-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1175 & 1175.000000 & 1175.000000 & 1175.000000 \\
+\hline mean & 0 days 00:49:08.815319 & 5.305957 & 275.398203 & 93220.453699 \\
+\hline std & 0 days 01:06:22.008064 & 13.405384 & 91.147089 & 8387.127933 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.916000 & 84737.112000 \\
+\hline 25\% & 0 days 00:03:42 & 0.300000 & 207.588000 & 85004.898000 \\
+\hline 50\% & 0 days 00:27:26 & 0.900000 & 246.172000 & 85510.376000 \\
+\hline 75\% & 0 days 01:10:43.500000 & 4.500000 & 335.568000 & 101785.870000 \\
+\hline max & 0 days 14:03:39 & 193.000000 & 794.712000 & 102853.664000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-dldctx-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline edprmn-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 484 & 484.000000 & 484.000000 & 484.000000 \\
+\hline mean & 0 days 00:54:31.832644 & 3.075826 & 307.553843 & 94485.551744 \\
+\hline std & 0 days 01:11:39.732531 & 8.593778 & 79.035835 & 8374.149546 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 118.788000 & 84880.396000 \\
+\hline 25\% & 0 days 00:09:14.750000 & 0.300000 & 233.405000 & 85473.506000 \\
+\hline 50\% & 0 days 00:37:29 & 0.600000 & 324.846000 & 101871.342000 \\
+\hline 75\% & 0 days 01:12:21 & 1.800000 & 360.830000 & 102252.340000 \\
+\hline max & 0 days 14:01:57 & 110.000000 & 584.544000 & 102612.116000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-edprmn-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline knwdmi-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1197 & 1197.000000 & 1197.000000 & 1197.000000 \\
+\hline mean & 0 days 00:56:20.769423 & 4.304511 & 308.183479 & 93711.516999 \\
+\hline std & 0 days 01:11:11.558274 & 11.838161 & 85.519402 & 8390.990125 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.752000 & 84603.540000 \\
+\hline 25\% & 0 days 00:05:20 & 0.300000 & 231.296000 & 85440.824000 \\
+\hline 50\% & 0 days 00:32:53 & 0.700000 & 318.392000 & 85899.792000 \\
+\hline 75\% & 0 days 01:18:14 & 3.000000 & 361.372000 & 102196.928000 \\
+\hline max & 0 days 10:18:51 & 157.000000 & 873.304000 & 103412.164000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-knwdmi-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline ladcca-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1405 & 1405.000000 & 1405.000000 & 1405.000000 \\
+\hline mean & 0 days 00:37:44.374377 & 5.675658 & 264.299693 & 93489.357469 \\
+\hline std & 0 days 00:51:18.488127 & 12.728386 & 79.433408 & 8400.606143 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.764000 & 84299.084000 \\
+\hline 25\% & 0 days 00:03:04 & 0.400000 & 206.336000 & 84996.864000 \\
+\hline 50\% & 0 days 00:20:20 & 1.000000 & 243.328000 & 101279.356000 \\
+\hline 75\% & 0 days 00:56:15 & 5.400000 & 312.024000 & 101787.456000 \\
+\hline max & 0 days 14:17:15 & 125.000000 & 690.820000 & 102754.392000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-ladcca-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline mddcwi-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1174 & 1174.000000 & 1174.000000 & 1174.000000 \\
+\hline mean & 0 days 00:54:27.664395 & 3.966440 & 308.771567 & 93703.389761 \\
+\hline std & 0 days 01:06:51.603549 & 11.909432 & 86.137851 & 8395.924431 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 159.460000 & 84836.184000 \\
+\hline 25\% & 0 days 00:05:59 & 0.300000 & 232.573000 & 85414.961000 \\
+\hline 50\% & 0 days 00:31:56 & 0.800000 & 320.204000 & 85930.746000 \\
+\hline 75\% & 0 days 01:17:12 & 2.800000 & 364.063000 & 102202.970000 \\
+\hline max & 0 days 07:29:29 & 171.000000 & 800.224000 & 102883.796000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-mddcwi-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline nvdctn-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1100 & 1100.000000 & 1100.000000 & 1100.000000 \\
+\hline mean & 0 days 00:51:39.499090 & 5.528636 & 272.165655 & 93515.126298 \\
+\hline std & 0 days 01:14:14.436307 & 13.528068 & 84.463664 & 8378.531494 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 74.036000 & 84499.972000 \\
+\hline 25\% & 0 days 00:02:50 & 0.300000 & 210.856000 & 85040.900000 \\
+\hline 50\% & 0 days 00:26:23 & 1.000000 & 247.184000 & 101462.920000 \\
+\hline 75\% & 0 days 01:09:48 & 6.400000 & 329.754000 & 101781.689000 \\
+\hline max & 0 days 11:03:04 & 189.000000 & 901.456000 & 103204.112000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-nvdctn-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline pldcor-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 617 & 617.000000 & 617.000000 & 617.000000 \\
+\hline mean & 0 days 00:38:47.150729 & 5.044408 & 292.155896 & 93418.637433 \\
+\hline std & 0 days 00:55:32.465155 & 10.906144 & 89.670811 & 8401.566952 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 25.996000 & 84137.212000 \\
+\hline 25\% & 0 days 00:02:09 & 0.400000 & 222.672000 & 85047.452000 \\
+\hline 50\% & 0 days 00:19:07 & 1.100000 & 263.728000 & 85655.872000 \\
+\hline 75\% & 0 days 00:55:46 & 5.300000 & 350.596000 & 101834.576000 \\
+\hline max & 0 days 10:31:02 & 125.000000 & 697.316000 & 102571.984000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-pldcor-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline renonv-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 463 & 463.000000 & 463.000000 & 463.000000 \\
+\hline mean & 0 days 00:45:09.572354 & 4.349028 & 305.243127 & 94012.408268 \\
+\hline std & 0 days 00:59:55.040315 & 10.439120 & 81.692878 & 8395.393997 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 136.740000 & 84711.100000 \\
+\hline 25\% & 0 days 00:04:00 & 0.400000 & 229.926000 & 85456.474000 \\
+\hline 50\% & 0 days 00:26:20 & 1.000000 & 315.000000 & 101835.508000 \\
+\hline 75\% & 0 days 01:01:49.500000 & 4.700000 & 358.910000 & 102201.874000 \\
+\hline max & 0 days 07:46:35 & 129.000000 & 654.896000 & 102728.624000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-renonv-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline sldcla-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 367 & 367.000000 & 367.000000 & 367.000000 \\
+\hline mean & 0 days 00:52:02.321525 & 3.447684 & 308.282441 & 93665.601439 \\
+\hline std & 0 days 01:05:07.477689 & 9.627144 & 95.466018 & 8427.520111 \\
+\hline min & 0 days 00:00:02 & 0.100000 & 165.548000 & 84807.784000 \\
+\hline 25\% & 0 days 00:07:46.500000 & 0.300000 & 226.758000 & 85204.854000 \\
+\hline 50\% & 0 days 00:32:44 & 0.600000 & 314.456000 & 101577.676000 \\
+\hline 75\% & 0 days 01:08:19 & 2.500000 & 362.068000 & 102112.082000 \\
+\hline max & 0 days 09:19:37 & 98.500000 & 928.156000 & 102851.420000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-sldcla-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline sldcmo-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1980 & 1980.000000 & 1980.000000 & 1980.000000 \\
+\hline mean & 0 days 00:55:38.648989 & 3.693030 & 316.468954 & 93539.294240 \\
+\hline std & 0 days 01:08:03.930234 & 9.488692 & 87.851164 & 8381.376493 \\
+\hline min & 0 days 00:00:01 & 0.100000 & 23.804000 & 84398.404000 \\
+\hline 25\% & 0 days 00:07:43.250000 & 0.300000 & 238.434000 & 85440.543000 \\
+\hline 50\% & 0 days 00:32:55 & 0.700000 & 328.272000 & 85812.378000 \\
+\hline 75\% & 0 days 01:16:59.250000 & 2.800000 & 368.862000 & 102216.639000 \\
+\hline max & 0 days 07:57:31 & 140.000000 & 904.712000 & 103012.388000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-sldcmo-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline slotca-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 419 & 419.000000 & 419.000000 & 419.000000 \\
+\hline mean & 0 days 00:34:15.622911 & 6.990215 & 265.624086 & 92961.341289 \\
+\hline std & 0 days 00:41:34.817834 & 16.063384 & 80.754510 & 8384.820665 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 39.020000 & 84303.168000 \\
+\hline 25\% & 0 days 00:02:49.500000 & 0.400000 & 208.816000 & 85002.490000 \\
+\hline 50\% & 0 days 00:19:21 & 1.300000 & 237.424000 & 85427.164000 \\
+\hline 75\% & 0 days 00:53:00 & 5.950000 & 320.490000 & 101763.350000 \\
+\hline max & 0 days 04:48:31 & 137.000000 & 567.296000 & 102545.756000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-slotca-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline spdcsc-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1815 & 1815.000000 & 1815.000000 & 1815.000000 \\
+\hline mean & 0 days 00:56:59.471625 & 4.009311 & 305.484666 & 93807.664732 \\
+\hline std & 0 days 01:06:11.555733 & 10.265469 & 89.137759 & 8401.546899 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.492000 & 84135.636000 \\
+\hline 25\% & 0 days 00:06:08.500000 & 0.300000 & 227.934000 & 85413.012000 \\
+\hline 50\% & 0 days 00:36:52 & 0.700000 & 313.952000 & 101679.744000 \\
+\hline 75\% & 0 days 01:24:12 & 2.800000 & 362.102000 & 102202.358000 \\
+\hline max & 0 days 09:27:02 & 170.000000 & 859.972000 & 103375.116000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-spdcsc-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twcca-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 4882 & 4882.000000 & 4882.000000 & 4882.000000 \\
+\hline mean & 0 days 00:37:10.723473 & 5.804056 & 261.173032 & 93298.046357 \\
+\hline std & 0 days 00:47:27.228777 & 13.116683 & 77.443608 & 8385.958011 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.268000 & 84135.628000 \\
+\hline 25\% & 0 days 00:02:59.250000 & 0.400000 & 202.723000 & 84998.580000 \\
+\hline 50\% & 0 days 00:20:36 & 1.100000 & 235.218000 & 85530.334000 \\
+\hline 75\% & 0 days 00:56:59.250000 & 5.200000 & 319.067000 & 101773.449000 \\
+\hline max & 0 days 12:57:32 & 162.000000 & 702.176000 & 102954.784000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twcca-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twchi-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 7 & 7.000000 & 7.000000 & 7.000000 \\
+\hline mean & 0 days 00:08:11.714285 & 34.500000 & 255.581143 & 96977.096571 \\
+\hline std & 0 days 00:12:34.734327 & 33.583428 & 91.738284 & 8324.749851 \\
+\hline min & 0 days 00:00:01 & 1.000000 & 140.528000 & 84709.300000 \\
+\hline 25\% & 0 days 00:00:02.500000 & 3.400000 & 192.376000 & 93168.260000 \\
+\hline 50\% & 0 days 00:00:21 & 30.200000 & 236.616000 & 101737.256000 \\
+\hline 75\% & 0 days 00:12:51.500000 & 60.750000 & 323.356000 & 101980.632000 \\
+\hline max & 0 days 00:31:12 & 82.000000 & 380.460000 & 102095.336000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twchi-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twcoh-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 7029 & 7029.000000 & 7029.000000 & 7029.000000 \\
+\hline mean & 0 days 00:48:33.576753 & 6.037018 & 268.474773 & 93314.015463 \\
+\hline std & 0 days 01:06:09.342102 & 14.052157 & 84.220805 & 8394.765584 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.172000 & 84135.768000 \\
+\hline 25\% & 0 days 00:02:56 & 0.300000 & 207.852000 & 85006.232000 \\
+\hline 50\% & 0 days 00:25:26 & 1.000000 & 243.740000 & 85531.004000 \\
+\hline 75\% & 0 days 01:10:18 & 5.500000 & 326.600000 & 101786.200000 \\
+\hline max & 0 days 15:30:52 & 197.000000 & 2158.540000 & 106445.680000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twcoh-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twcsc-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 6027 & 6027.000000 & 6027.000000 & 6027.000000 \\
+\hline mean & 0 days 00:46:36.191969 & 5.435026 & 278.392985 & 93518.459964 \\
+\hline std & 0 days 01:02:49.906873 & 12.562265 & 92.701697 & 8396.009497 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 22.292000 & 84135.760000 \\
+\hline 25\% & 0 days 00:03:50 & 0.400000 & 208.964000 & 85048.218000 \\
+\hline 50\% & 0 days 00:26:11 & 0.900000 & 243.228000 & 86769.572000 \\
+\hline 75\% & 0 days 01:06:38.500000 & 5.000000 & 343.698000 & 101835.804000 \\
+\hline max & 0 days 21:02:10 & 178.000000 & 1133.824000 & 103563.788000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twcsc-WebKitWeb}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twctx-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 6693 & 6693.000000 & 6693.000000 & 6693.000000 \\
+\hline mean & 0 days 00:44:14.776632 & 4.929777 & 268.298349 & 93506.322511 \\
+\hline std & 0 days 00:55:06.150575 & 11.754724 & 82.184429 & 8468.281196 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 0.000000 & 0.000000 \\
+\hline 25\% & 0 days 00:04:42 & 0.400000 & 202.692000 & 85032.016000 \\
+\hline 50\% & 0 days 00:26:38 & 0.900000 & 242.516000 & 101474.100000 \\
+\hline 75\% & 0 days 01:05:19 & 3.900000 & 329.084000 & 101805.592000 \\
+\hline max & 0 days 20:40:25 & 165.000000 & 884.992000 & 102890.868000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twctx-WebKitWeb}
+\end{table}
+
+
+\newpage
+
+
+
+\appendix
+
+\section{Appendix C Session Size WebKitNetwork}
+\label{APPENDIX-SessionSizeTables-WebKitNet}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhdcal-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1610 & 1610.000000 & 1610.000000 & 1610.000000 \\
+\hline mean & 0 days 00:48:43.219875 & 0.503913 & 32.182484 & 92961.125610 \\
+\hline std & 0 days 01:09:12.456579 & 1.902915 & 1.466063 & 8391.175123 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.756000 & 83987.668000 \\
+\hline 25\% & 0 days 00:03:42.250000 & 0.000000 & 31.324000 & 84640.616000 \\
+\hline 50\% & 0 days 00:25:38 & 0.000000 & 31.610000 & 84779.884000 \\
+\hline 75\% & 0 days 01:11:07.750000 & 0.200000 & 33.115000 & 101376.107000 \\
+\hline max & 0 days 15:27:17 & 30.000000 & 42.004000 & 101614.444000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhdcal-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnal-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 33 & 33.000000 & 33.000000 & 33.000000 \\
+\hline mean & 0 days 01:11:42.878787 & 0.030303 & 32.657333 & 94335.098182 \\
+\hline std & 0 days 01:35:45.949952 & 0.123705 & 1.205251 & 8434.521188 \\
+\hline min & 0 days 00:01:37 & 0.000000 & 30.964000 & 84501.300000 \\
+\hline 25\% & 0 days 00:17:06 & 0.000000 & 31.668000 & 84706.148000 \\
+\hline 50\% & 0 days 00:43:53 & 0.000000 & 32.348000 & 101417.828000 \\
+\hline 75\% & 0 days 01:17:05 & 0.000000 & 33.532000 & 101483.368000 \\
+\hline max & 0 days 08:14:58 & 0.700000 & 35.832000 & 101616.484000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnal-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnca-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 66 & 66.000000 & 66.00000 & 66.000000 \\
+\hline mean & 0 days 00:36:05.787878 & 0.383333 & 32.67200 & 93304.580606 \\
+\hline std & 0 days 00:46:28.067638 & 0.955725 & 2.00823 & 8452.775126 \\
+\hline min & 0 days 00:00:06 & 0.000000 & 30.80400 & 84501.300000 \\
+\hline 25\% & 0 days 00:02:39.250000 & 0.000000 & 31.53100 & 84706.148000 \\
+\hline 50\% & 0 days 00:12:03 & 0.000000 & 31.71600 & 101352.292000 \\
+\hline 75\% & 0 days 00:56:40.750000 & 0.200000 & 33.45100 & 101469.029000 \\
+\hline max & 0 days 03:22:45 & 4.800000 & 42.81600 & 101491.560000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnca-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnfl-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 18 & 18.000000 & 18.000000 & 18.000000 \\
+\hline mean & 0 days 00:23:02.611111 & 0.633333 & 31.888889 & 91152.795778 \\
+\hline std & 0 days 00:37:16.993758 & 1.855992 & 0.783675 & 8385.614870 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 31.016000 & 84509.540000 \\
+\hline 25\% & 0 days 00:02:04 & 0.000000 & 31.432000 & 84706.148000 \\
+\hline 50\% & 0 days 00:04:59 & 0.100000 & 31.802000 & 84706.148000 \\
+\hline 75\% & 0 days 00:22:34.250000 & 0.375000 & 32.112000 & 101352.296000 \\
+\hline max & 0 days 01:59:35 & 8.000000 & 34.576000 & 101483.368000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnfl-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnoh-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 63 & 63.000000 & 63.000000 & 63.000000 \\
+\hline mean & 0 days 01:00:36.015873 & 0.292063 & 33.108635 & 92106.044889 \\
+\hline std & 0 days 01:14:28.233823 & 0.808084 & 1.572336 & 8413.716806 \\
+\hline min & 0 days 00:00:07 & 0.000000 & 31.032000 & 84575.076000 \\
+\hline 25\% & 0 days 00:10:13 & 0.000000 & 31.908000 & 84640.612000 \\
+\hline 50\% & 0 days 00:38:37 & 0.000000 & 33.000000 & 84706.152000 \\
+\hline 75\% & 0 days 01:26:59 & 0.050000 & 33.662000 & 101418.852000 \\
+\hline max & 0 days 07:01:48 & 4.700000 & 38.200000 & 101491.564000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnoh-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline blngmt-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 387 & 387.000000 & 387.000000 & 387.000000 \\
+\hline mean & 0 days 00:44:54.524547 & 0.413178 & 32.581984 & 92458.109881 \\
+\hline std & 0 days 00:55:01.386454 & 1.399632 & 1.493820 & 8380.114157 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 30.572000 & 84435.772000 \\
+\hline 25\% & 0 days 00:02:49.500000 & 0.000000 & 31.402000 & 84576.108000 \\
+\hline 50\% & 0 days 00:24:18 & 0.000000 & 32.000000 & 84721.516000 \\
+\hline 75\% & 0 days 01:09:52.500000 & 0.200000 & 33.506000 & 101353.324000 \\
+\hline max & 0 days 05:06:25 & 14.000000 & 38.980000 & 101679.980000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-blngmt-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bodcma-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 766 & 766.000000 & 766.000000 & 766.000000 \\
+\hline mean & 0 days 00:47:42.869451 & 0.490470 & 32.181321 & 93110.149285 \\
+\hline std & 0 days 01:04:45.926109 & 1.720526 & 2.319433 & 8389.902331 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.756000 & 83987.668000 \\
+\hline 25\% & 0 days 00:03:53.250000 & 0.000000 & 31.348000 & 84640.616000 \\
+\hline 50\% & 0 days 00:25:38 & 0.000000 & 31.640000 & 101212.986000 \\
+\hline 75\% & 0 days 01:06:07.250000 & 0.100000 & 32.290000 & 101417.832000 \\
+\hline max & 0 days 10:56:16 & 16.000000 & 82.524000 & 101679.976000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bodcma-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline dldctx-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1174 & 1174.000000 & 1174.000000 & 1174.000000 \\
+\hline mean & 0 days 00:49:19.776831 & 0.395486 & 32.092501 & 92776.283632 \\
+\hline std & 0 days 01:06:30.947358 & 1.404986 & 1.870823 & 8388.010846 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.752000 & 84061.444000 \\
+\hline 25\% & 0 days 00:03:50.250000 & 0.000000 & 31.292000 & 84577.129000 \\
+\hline 50\% & 0 days 00:27:27.500000 & 0.000000 & 31.532000 & 84710.516000 \\
+\hline 75\% & 0 days 01:11:11 & 0.200000 & 32.428000 & 101353.320000 \\
+\hline max & 0 days 14:04:07 & 15.500000 & 71.604000 & 101576.552000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-dldctx-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline edprmn-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 490 & 490.000000 & 490.000000 & 490.000000 \\
+\hline mean & 0 days 00:53:59.983673 & 0.284490 & 34.036555 & 92695.324735 \\
+\hline std & 0 days 01:11:36.222713 & 0.947823 & 1.864289 & 8383.613674 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.800000 & 84583.224000 \\
+\hline 25\% & 0 days 00:09:16.250000 & 0.000000 & 32.448000 & 84730.732000 \\
+\hline 50\% & 0 days 00:36:04 & 0.000000 & 34.196000 & 84828.518000 \\
+\hline 75\% & 0 days 01:10:47 & 0.100000 & 34.700000 & 101507.944000 \\
+\hline max & 0 days 14:02:29 & 7.500000 & 42.148000 & 101639.020000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-edprmn-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline knwdmi-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1196 & 1196.000000 & 1196.000000 & 1196.000000 \\
+\hline mean & 0 days 00:56:42.188963 & 0.295151 & 34.223070 & 92974.769452 \\
+\hline std & 0 days 01:11:17.367918 & 1.632866 & 1.832524 & 8393.739773 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.800000 & 83987.684000 \\
+\hline 25\% & 0 days 00:05:41.750000 & 0.000000 & 32.535000 & 84788.068000 \\
+\hline 50\% & 0 days 00:32:51 & 0.000000 & 34.332000 & 84904.294000 \\
+\hline 75\% & 0 days 01:18:38 & 0.100000 & 34.977000 & 101565.288000 \\
+\hline max & 0 days 10:19:25 & 48.000000 & 44.556000 & 101762.920000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-knwdmi-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline ladcca-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1407 & 1407.000000 & 1407.000000 & 1407.000000 \\
+\hline mean & 0 days 00:38:02.893390 & 0.508102 & 33.524861 & 92964.502465 \\
+\hline std & 0 days 00:54:53.590329 & 1.569120 & 2.092781 & 8391.130483 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.752000 & 83987.668000 \\
+\hline 25\% & 0 days 00:03:03 & 0.000000 & 31.820000 & 84576.104000 \\
+\hline 50\% & 0 days 00:20:29 & 0.000000 & 33.332000 & 84771.688000 \\
+\hline 75\% & 0 days 00:56:29.500000 & 0.200000 & 33.992000 & 101353.320000 \\
+\hline max & 0 days 14:17:46 & 16.000000 & 44.060000 & 101615.464000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-ladcca-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline mddcwi-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1185 & 1185.000000 & 1185.000000 & 1185.000000 \\
+\hline mean & 0 days 00:53:42.642194 & 0.383713 & 34.304354 & 92782.586015 \\
+\hline std & 0 days 01:06:35.849268 & 1.510161 & 2.098200 & 8381.676242 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.796000 & 83987.684000 \\
+\hline 25\% & 0 days 00:05:31 & 0.000000 & 32.560000 & 84788.072000 \\
+\hline 50\% & 0 days 00:31:06 & 0.000000 & 34.324000 & 84889.448000 \\
+\hline 75\% & 0 days 01:16:51 & 0.100000 & 35.016000 & 101565.288000 \\
+\hline max & 0 days 07:30:02 & 23.500000 & 46.588000 & 101763.052000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-mddcwi-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline nvdctn-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1094 & 1094.000000 & 1094.000000 & 1094.000000 \\
+\hline mean & 0 days 00:52:00.544789 & 0.433547 & 32.360596 & 92956.821144 \\
+\hline std & 0 days 01:14:21.341947 & 1.631618 & 1.510220 & 8390.872779 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.756000 & 84435.768000 \\
+\hline 25\% & 0 days 00:03:02.500000 & 0.000000 & 31.380000 & 84640.616000 \\
+\hline 50\% & 0 days 00:26:50 & 0.000000 & 31.724000 & 84820.840000 \\
+\hline 75\% & 0 days 01:10:17.750000 & 0.200000 & 33.382000 & 101417.832000 \\
+\hline max & 0 days 11:03:21 & 28.000000 & 43.848000 & 101645.160000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-nvdctn-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline pldcor-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 608 & 608.000000 & 608.000000 & 608.000000 \\
+\hline mean & 0 days 00:39:13.812500 & 0.475822 & 32.509566 & 93434.078914 \\
+\hline std & 0 days 00:55:48.016129 & 1.561098 & 1.672544 & 8384.144046 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 30.628000 & 84501.304000 \\
+\hline 25\% & 0 days 00:02:24.500000 & 0.000000 & 31.364000 & 84640.620000 \\
+\hline 50\% & 0 days 00:20:11.500000 & 0.000000 & 31.686000 & 101286.760000 \\
+\hline 75\% & 0 days 00:56:12 & 0.300000 & 33.405000 & 101417.832000 \\
+\hline max & 0 days 10:31:26 & 16.300000 & 41.452000 & 101614.444000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-pldcor-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline renonv-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 459 & 459.000000 & 459.000000 & 459.000000 \\
+\hline mean & 0 days 00:45:44.385620 & 0.422004 & 33.841333 & 92993.109429 \\
+\hline std & 0 days 01:00:07.492928 & 1.474594 & 1.659362 & 8400.467081 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 30.840000 & 84296.492000 \\
+\hline 25\% & 0 days 00:04:03 & 0.000000 & 32.520000 & 84756.840000 \\
+\hline 50\% & 0 days 00:26:39 & 0.000000 & 33.296000 & 84923.240000 \\
+\hline 75\% & 0 days 01:02:26.500000 & 0.200000 & 34.670000 & 101565.284000 \\
+\hline max & 0 days 07:46:50 & 12.000000 & 42.968000 & 101761.892000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-renonv-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline sldcla-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 362 & 362.000000 & 362.000000 & 362.000000 \\
+\hline mean & 0 days 00:52:57.088397 & 0.191436 & 32.780144 & 92487.885558 \\
+\hline std & 0 days 01:05:19.394376 & 0.728113 & 1.737135 & 8385.602725 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 23.396000 & 84444.012000 \\
+\hline 25\% & 0 days 00:09:29.500000 & 0.000000 & 31.393000 & 84583.276000 \\
+\hline 50\% & 0 days 00:33:53 & 0.000000 & 32.976000 & 84706.668000 \\
+\hline 75\% & 0 days 01:09:53.750000 & 0.100000 & 33.508000 & 101359.464000 \\
+\hline max & 0 days 09:19:54 & 9.000000 & 41.180000 & 101548.908000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-sldcla-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline sldcmo-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1974 & 1974.000000 & 1974.000000 & 1974.000000 \\
+\hline mean & 0 days 00:56:19.406788 & 0.302736 & 34.454014 & 93122.249777 \\
+\hline std & 0 days 01:08:20.245841 & 1.238855 & 1.836120 & 8392.444244 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.796000 & 84296.624000 \\
+\hline 25\% & 0 days 00:08:24.250000 & 0.000000 & 32.732000 & 84788.072000 \\
+\hline 50\% & 0 days 00:33:40.500000 & 0.000000 & 34.420000 & 84919.276000 \\
+\hline 75\% & 0 days 01:18:14 & 0.100000 & 35.222000 & 101565.288000 \\
+\hline max & 0 days 07:58:30 & 19.200000 & 45.156000 & 101696.360000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-sldcmo-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline slotca-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 421 & 421.000000 & 421.000000 & 421.000000 \\
+\hline mean & 0 days 00:33:58.508313 & 0.677910 & 32.083658 & 92918.673701 \\
+\hline std & 0 days 00:41:36.883165 & 2.216478 & 1.542743 & 8403.845534 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.756000 & 83987.668000 \\
+\hline 25\% & 0 days 00:02:46 & 0.000000 & 31.316000 & 84584.304000 \\
+\hline 50\% & 0 days 00:19:08 & 0.000000 & 31.564000 & 84782.952000 \\
+\hline 75\% & 0 days 00:52:49 & 0.300000 & 32.140000 & 101417.836000 \\
+\hline max & 0 days 04:48:42 & 21.500000 & 40.276000 & 101615.464000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-slotca-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline spdcsc-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1834 & 1834.000000 & 1834.000000 & 1834.000000 \\
+\hline mean & 0 days 00:56:29.835877 & 0.356270 & 34.441058 & 93199.903531 \\
+\hline std & 0 days 01:06:11.147577 & 1.267452 & 1.873555 & 8392.694716 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 30.684000 & 84296.488000 \\
+\hline 25\% & 0 days 00:05:42 & 0.000000 & 32.652000 & 84788.068000 \\
+\hline 50\% & 0 days 00:35:56 & 0.000000 & 34.408000 & 101327.670000 \\
+\hline 75\% & 0 days 01:23:28 & 0.100000 & 35.200000 & 101565.288000 \\
+\hline max & 0 days 09:27:37 & 15.000000 & 44.336000 & 101773.156000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-spdcsc-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twcca-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 4860 & 4860.000000 & 4860.000000 & 4860.000000 \\
+\hline mean & 0 days 00:37:26.970576 & 0.488395 & 32.194111 & 92859.917594 \\
+\hline std & 0 days 00:47:35.838528 & 1.668407 & 1.593251 & 8387.721985 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.752000 & 83987.668000 \\
+\hline 25\% & 0 days 00:03:14 & 0.000000 & 31.396000 & 84706.152000 \\
+\hline 50\% & 0 days 00:20:52 & 0.000000 & 31.624000 & 84771.692000 \\
+\hline 75\% & 0 days 00:57:28.250000 & 0.200000 & 32.478000 & 101483.368000 \\
+\hline max & 0 days 12:58:06 & 36.000000 & 69.364000 & 101614.444000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twcca-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twchi-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 6 & 6.0000 & 6.000000 & 6.000000 \\
+\hline mean & 0 days 00:10:01.333333 & 0.5500 & 31.722667 & 95805.108000 \\
+\hline std & 0 days 00:13:13.268344 & 0.6253 & 0.516038 & 8641.901505 \\
+\hline min & 0 days 00:00:25 & 0.0000 & 31.140000 & 84648.808000 \\
+\hline 25\% & 0 days 00:00:34 & 0.0250 & 31.410000 & 88806.238000 \\
+\hline 50\% & 0 days 00:03:16.500000 & 0.3500 & 31.680000 & 101315.404000 \\
+\hline 75\% & 0 days 00:17:15.500000 & 1.0500 & 31.839000 & 101401.444000 \\
+\hline max & 0 days 00:31:35 & 1.4000 & 32.624000 & 101484.392000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twchi-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twcoh-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 6991 & 6991.000000 & 6991.000000 & 6991.000000 \\
+\hline mean & 0 days 00:44:39.496352 & 0.775039 & 32.245519 & 93004.548110 \\
+\hline std & 0 days 01:05:13.783687 & 2.326649 & 1.834341 & 8391.017793 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.352000 & 83987.536000 \\
+\hline 25\% & 0 days 00:01:21 & 0.000000 & 31.316000 & 84640.616000 \\
+\hline 50\% & 0 days 00:19:20 & 0.000000 & 31.600000 & 84845.420000 \\
+\hline 75\% & 0 days 01:03:41.500000 & 0.500000 & 33.056000 & 101417.832000 \\
+\hline max & 0 days 15:32:32 & 64.000000 & 75.076000 & 101615.468000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twcoh-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twcsc-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 6069 & 6069.000000 & 6069.000000 & 6069.000000 \\
+\hline mean & 0 days 00:46:54.089306 & 0.443121 & 32.358817 & 92979.545029 \\
+\hline std & 0 days 01:07:15.622491 & 1.489099 & 1.550216 & 8390.399349 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.788000 & 83987.664000 \\
+\hline 25\% & 0 days 00:03:44 & 0.000000 & 31.520000 & 84654.952000 \\
+\hline 50\% & 0 days 00:25:58 & 0.000000 & 31.836000 & 84844.388000 \\
+\hline 75\% & 0 days 01:06:21 & 0.200000 & 33.124000 & 101456.744000 \\
+\hline max & 0 days 21:02:42 & 27.000000 & 55.980000 & 101682.020000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twcsc-WebKitNet}
+\end{table}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline twctx-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 6721 & 6721.000000 & 6721.000000 & 6721.000000 \\
+\hline mean & 0 days 00:44:08.644100 & 0.423032 & 32.083319 & 93037.348626 \\
+\hline std & 0 days 00:55:04.623253 & 1.584696 & 1.734892 & 8389.790698 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 20.788000 & 83987.664000 \\
+\hline 25\% & 0 days 00:04:38 & 0.000000 & 31.388000 & 84640.616000 \\
+\hline 50\% & 0 days 00:26:24 & 0.000000 & 31.616000 & 100764.880000 \\
+\hline 75\% & 0 days 01:05:29 & 0.100000 & 32.048000 & 101417.832000 \\
+\hline max & 0 days 20:41:36 & 33.000000 & 85.668000 & 101751.652000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-twctx-WebKitNet}
+\end{table}
+
+
+\newpage
+
+
+
+\appendix
+
+\section{Appendix D\: Session Size - Total Results}
+\label{APPENDIX-SessionSizeTotals}
+
+
+
+
+
+
+
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline RDC & 2.11 RSS AVE & 2.11 RSS STD & 2.16 RSS AVE & 2.16 RSS STD \\
+\hline bhdcal & 479.125 & 269.773 & 342.985 & 79.533 \\
+\hline bhnal & N/A & N/A & 354.572 & 112.875 \\
+\hline bhnca & N/A & N/A & 344.740 & 93.165 \\
+\hline bhnfl & N/A & N/A & 331.883 & 59.047 \\
+\hline bhnoh & N/A & N/A & 352.127 & 105.821 \\
+\hline blngmt & 741.827 & 506.062 & 350.391 & 88.782 \\
+\hline bodcma & 537.107 & 307.470 & 341.286 & 83.362 \\
+\hline dldctx & 484.178 & 295.350 & 349.107 & 91.147 \\
+\hline edprmn & 687.757 & 875.313 & 385.116 & 79.035 \\
+\hline knwdmi & 742.129 & 730.700 & 386.866 & 85.519 \\
+\hline ladcca & 450.936 & 244.823 & 342.854 & 79.433 \\
+\hline mddcwi & 871.828 & 697.919 & 387.004 & 86.137 \\
+\hline nvdctn & 581.608 & 351.990 & 346.399 & 84.463 \\
+\hline pldcor & 815.620 & 733.513 & 367.257 & 89.670 \\
+\hline renonv & 968.266 & 643.358 & 381.890 & 81.692 \\
+\hline sldcla & 680.787 & 384.019 & 385.213 & 95.466 \\
+\hline sldcmo & 991.308 & 681.528 & 396.143 & 87.851 \\
+\hline slotca & 517.918 & 254.689 & 337.082 & 80.754 \\
+\hline spdcsc & 747.331 & 744.264 & 385.366 & 89.137 \\
+\hline twcca & 515.805 & 255.678 & 333.789 & 77.443 \\
+\hline twchi & N/A & N/A & 328.940 & 91.738 \\
+\hline twcny.nydc & 505.566 & 253.195 & 339.339 & 82.245 \\
+\hline twcny.sydc & 500.684 & 260.041 & 343.303 & 82.061 \\
+\hline twcoh & 499.298 & 253.252 & 341.323 & 84.220 \\
+\hline twcsc & 497.244 & 287.396 & 352.361 & 92.701 \\
+\hline twctx & 490.834 & 253.906 & 340.850 & 82.184 \\
+\hline
+\end{tabular}
+\caption{\label{TABLE-SessionSizeTotals}2.11 and 2.16 session sizes. All sizes in MB.} 
+\end{table}
+
+
+
+
+\end{document}

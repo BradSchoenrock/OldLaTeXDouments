@@ -1,0 +1,15 @@
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bodcma-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 757 & 757.000000 & 757.000000 & 757.000000 \\
+\hline mean & 0 days 00:48:36.417437 & 4.956803 & 268.058225 & 93761.174880 \\
+\hline std & 0 days 01:04:42.106945 & 13.092361 & 83.362128 & 8397.483852 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 85.064000 & 84523.628000 \\
+\hline 25\% & 0 days 00:04:42 & 0.300000 & 203.056000 & 85019.428000 \\
+\hline 50\% & 0 days 00:26:18 & 0.800000 & 243.484000 & 101589.704000 \\
+\hline 75\% & 0 days 01:06:20 & 3.600000 & 328.416000 & 101798.500000 \\
+\hline max & 0 days 10:55:42 & 148.000000 & 686.072000 & 102851.056000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bodcma-WebKitWeb}
+\end{table}

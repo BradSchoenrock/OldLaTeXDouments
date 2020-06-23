@@ -1,0 +1,15 @@
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline mddcwi-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1174 & 1174.000000 & 1174.000000 & 1174.000000 \\
+\hline mean & 0 days 00:54:27.664395 & 3.966440 & 308.771567 & 93703.389761 \\
+\hline std & 0 days 01:06:51.603549 & 11.909432 & 86.137851 & 8395.924431 \\
+\hline min & 0 days 00:00:01 & 0.000000 & 159.460000 & 84836.184000 \\
+\hline 25\% & 0 days 00:05:59 & 0.300000 & 232.573000 & 85414.961000 \\
+\hline 50\% & 0 days 00:31:56 & 0.800000 & 320.204000 & 85930.746000 \\
+\hline 75\% & 0 days 01:17:12 & 2.800000 & 364.063000 & 102202.970000 \\
+\hline max & 0 days 07:29:29 & 171.000000 & 800.224000 & 102883.796000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-mddcwi-WebKitWeb}
+\end{table}

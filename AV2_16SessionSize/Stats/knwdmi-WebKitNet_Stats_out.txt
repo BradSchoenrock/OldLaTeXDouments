@@ -1,0 +1,15 @@
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline knwdmi-WebKitNet & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 1196 & 1196.000000 & 1196.000000 & 1196.000000 \\
+\hline mean & 0 days 00:56:42.188963 & 0.295151 & 34.223070 & 92974.769452 \\
+\hline std & 0 days 01:11:17.367918 & 1.632866 & 1.832524 & 8393.739773 \\
+\hline min & 0 days 00:00:00 & 0.000000 & 21.800000 & 83987.684000 \\
+\hline 25\% & 0 days 00:05:41.750000 & 0.000000 & 32.535000 & 84788.068000 \\
+\hline 50\% & 0 days 00:32:51 & 0.000000 & 34.332000 & 84904.294000 \\
+\hline 75\% & 0 days 01:18:38 & 0.100000 & 34.977000 & 101565.288000 \\
+\hline max & 0 days 10:19:25 & 48.000000 & 44.556000 & 101762.920000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-knwdmi-WebKitNet}
+\end{table}

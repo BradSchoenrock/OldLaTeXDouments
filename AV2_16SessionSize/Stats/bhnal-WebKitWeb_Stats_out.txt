@@ -1,0 +1,15 @@
+\begin{table}[H]
+\begin{tabular}{|l|l|l|l|l|}
+\hline bhnal-WebKitWeb & ELAPSED & CPU\% & RSS(mb) & SIZE(mb) \\
+\hline count & 33 & 33.000000 & 33.000000 & 33.000000 \\
+\hline mean & 0 days 01:11:32.878787 & 1.060606 & 278.651030 & 94285.292485 \\
+\hline std & 0 days 01:35:45.949952 & 1.561638 & 112.875977 & 8534.306397 \\
+\hline min & 0 days 00:01:27 & 0.100000 & 151.680000 & 84767.788000 \\
+\hline 25\% & 0 days 00:16:56 & 0.300000 & 193.936000 & 85009.672000 \\
+\hline 50\% & 0 days 00:43:43 & 0.500000 & 225.848000 & 101715.160000 \\
+\hline 75\% & 0 days 01:16:55 & 1.400000 & 372.560000 & 101869.692000 \\
+\hline max & 0 days 08:14:48 & 8.800000 & 544.792000 & 102540.112000 \\
+\hline
+\end{tabular}
+\label{TABLE-SessionSize-bhnal-WebKitWeb}
+\end{table}
